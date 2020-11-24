@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)https://www.helloted.com/ios/2020/06/28/clang/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<script src="./Clang插桩 - Helloted Blog_files/osd.js"></script><script src="./Clang插桩 - Helloted Blog_files/f.txt"></script><script src="./Clang插桩 - Helloted Blog_files/f(1).txt" id="google_shimpl"></script><script async="" src="./Clang插桩 - Helloted Blog_files/f(2).txt"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-4165845420824687",
+    enable_page_level_ads: true
+  });
+</script>
+
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="曹浩之Helloted的技术博客，用于记录一些技术成长过程中的技术分享，包括客户端iOS/Android，后台Pyhon/Java，跨平台开发Flutter">
+
+    <title>Clang插桩 - Helloted Blog</title>
+
+    <link rel="canonical" href="http://www.helloted.com/ios/2020/06/28/clang/">
+
+    <link rel="shortcut icon" href="https://www.helloted.com/img/favicon.ico">
+   
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="./Clang插桩 - Helloted Blog_files/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="./Clang插桩 - Helloted Blog_files/prism.css">
+
+    <!-- Custom Fonts -->
+<!--     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'> -->
+
+     <link rel="stylesheet" href="./Clang插桩 - Helloted Blog_files/clean-blog.css">
+
+     <link rel="stylesheet" href="./Clang插桩 - Helloted Blog_files/custom.css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+<link rel="preload" href="./Clang插桩 - Helloted Blog_files/f(3).txt" as="script"><script type="text/javascript" src="./Clang插桩 - Helloted Blog_files/f(3).txt"></script><link rel="preload" href="./Clang插桩 - Helloted Blog_files/f(4).txt" as="script"><script type="text/javascript" src="./Clang插桩 - Helloted Blog_files/f(4).txt"></script></head>
+
+
+<body>
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top is-fixed">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="https://www.helloted.com/">Helloted Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="https://www.helloted.com/">Home</a>
+                </li>
+                
+				
+                <li>
+                    <a href="https://www.helloted.com/aacategory/">Categorys</a>
+                </li>
+				
+                
+				
+                <li>
+                    <a href="https://www.helloted.com/aarchive/">Archive</a>
+                </li>
+				
+                
+				
+                <li>
+                    <a href="https://www.helloted.com/about/">About</a>
+                </li>
+				
+                
+				
+                <li>
+                    <a href="https://www.helloted.com/app/">APP</a>
+                </li>
+				
+                
+				
+                <li>
+                    <a href="https://www.helloted.com/mac_app/">Mac App</a>
+                </li>
+				
+                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+
+    <!-- Post Header -->
+<header class="intro-header" style="background-image: url(&#39;/img/default.jpg&#39;)">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <h1>Clang插桩</h1>
+                    
+                    <h2 class="subheading">Clnag插件编写教程</h2>
+                    
+                    <span class="meta">Posted by Ted on June 28, 2020</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+				<h4 id="0clang插桩原理">0、Clang插桩原理</h4>
+
+<p>Clang-LLVM编译过程如下:</p>
+
+<ul>
+  <li>
+    <p>预处理(Pre-process)：他的主要工作就是将宏替换，删除注释展开头文件，生成.i文件。</p>
+  </li>
+  <li>
+    <p>词法分析(Lexical Analysis)：将代码切成一个个 token，比如大小括号，等于号还有字符串等。是计算机科学中将字符序列转换为标记序列的过程。</p>
+  </li>
+  <li>
+    <p>语法分析(Semantic Analysis)：验证语法是否正确，然后将所有节点组成 AST(Abstract Syntax Tree抽象语法树) 。</p>
+  </li>
+  <li>
+    <p>静态分析(Static Analysis)：使用它来表示用于分析源代码以便自动发现错误。</p>
+  </li>
+  <li>
+    <p>中间代码生成(Code Generation)：生成中间代码 IR(Intermediate Representation)，Code Generation 会负责将语法树自顶向下遍历逐步翻译成 LLVM IR，IR 是编译过程的前端的输出，后端的输入。</p>
+  </li>
+  <li>
+    <p>优化(Optimize)：LLVM 会去做些优化工作，在 Xcode 的编译设置里也可以设置优化级别-O1、-O3、-Os…还可以写些自己的 Pass</p>
+  </li>
+  <li>
+    <p>生成目标文件(Assemble)：生成Target相关Object(Mach-o)。</p>
+  </li>
+  <li>
+    <p>链接(Link)：生成Executable可执行文件。</p>
+
+    <p><img src="./Clang插桩 - Helloted Blog_files/30.png" alt="img" class="img-responsive"></p>
+
+    <p><img src="./Clang插桩 - Helloted Blog_files/50.png" alt="img" class="img-responsive"></p>
+  </li>
+</ul>
+
+<p>而在优化过程中，可以自己定义Pass来优化代码</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/36.png" alt="img" class="img-responsive"></p>
+
+<h4 id="1编译插件的工具准备">1、编译插件的工具准备</h4>
+
+<p>1.1 新建文件夹llvm，下载LLVM（预计大小 648.2 M）</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight language-shell code-toolbar"><code class=" language-shell">$ git clone https://git.llvm.org/git/llvm.git/
+</code><div class="toolbar"><div class="toolbar-item"><span>Shell</span></div></div></pre></div></div>
+
+<p>1.2 在llvm/tools文件夹下载clang（预计大小 240.6 M）</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight language-shell code-toolbar"><code class=" language-shell">$ cd llvm/tools
+$ git clone https://git.llvm.org/git/clang.git/
+</code><div class="toolbar"><div class="toolbar-item"><span>Shell</span></div></div></pre></div></div>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/37.png" alt="img" class="img-responsive"></p>
+
+<p>1.3 安装编译工具ninja和cmake</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight language-shell code-toolbar"><code class=" language-shell">$ brew install cmake
+$ brew install ninja
+</code><div class="toolbar"><div class="toolbar-item"><span>Shell</span></div></div></pre></div></div>
+
+<p>1.4 在llvm同级目录下新建llvm_build和llvm_release两个文件夹，llvm是编译起始文件夹，llvm_release则是编译结果文件夹</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/38.png" alt="img" class="img-responsive"></p>
+
+<p>1.5 在llvm_build文件夹下设定编译结果路径</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight language-shell code-toolbar"><code class=" language-shell">$ cd llvm_build
+$ cmake -G Ninja ../llvm -DCMAKE_INSTALL_PREFIX=’编译结果路径，也就是llvm_release文件夹’
+（参考：cmake -G Ninja ../llvm -DCMAKE_INSTALL_PREFIX=‘/Users/xxxx/LLVMProject/llvm_release’）
+</code><div class="toolbar"><div class="toolbar-item"><span>Shell</span></div></div></pre></div></div>
+
+<p>1.6 在llvm_build路径下依次执行编译和安装命令</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight language-plaintext code-toolbar"><code class=" language-plaintext">$ ninja
+</code><div class="toolbar"><div class="toolbar-item"><span>Plaintext</span></div></div></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight language-plaintext code-toolbar"><code class=" language-plaintext">$ ninja install
+</code><div class="toolbar"><div class="toolbar-item"><span>Plaintext</span></div></div></pre></div></div>
+
+<p>1.7 在llvm源码同级目录下新建文件夹llvm_xcode</p>
+
+<p>1.8 在llvm_xcode路径下，编译xcode</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight language-plaintext code-toolbar"><code class=" language-plaintext">$ cd llvm_xcode
+$ cmake -G Xcode ../llvm
+</code><div class="toolbar"><div class="toolbar-item"><span>Plaintext</span></div></div></pre></div></div>
+
+<p>最终效果：</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/39.png" alt="img" class="img-responsive"></p>
+
+<p>1.9 打开LLVM.xcodeproj并用Automaticallly Create Schemes</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/40.png" alt="img" class="img-responsive"></p>
+
+<p>1.10 然后选择ALL_BUILD进行编译，编译过程需要几十分钟不等。</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/41.png" alt="img" class="img-responsive"></p>
+
+<h4 id="2编写pass插件">2、编写PASS插件</h4>
+
+<p>在$LLVM_SOURCE/lib/Transforms/ 目录下有一个Hello的自带Demo，可以仿照Hello编写我们自己的PASS</p>
+
+<p>2.1 在Hello同级目录下创建文件夹MyPass，并在MyPass文件夹下创建CMakeLists.txt和MyPass.cpp两个文件</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/42.png" alt="img" class="img-responsive"></p>
+
+<p>2.2 在$LLVM_SOURCE/lib/Transforms/MyPass/CMakeLists.txt内添加内容，需要注意的是add_llvm_library后面的MyPass是将要生成的Target的名称，自带的Hello文件夹内添加的是LLVMHello名称，所以Target是LLVMHello。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight language-plaintext code-toolbar"><code class=" language-plaintext">add_llvm_library( MyPass MODULE BUILDTREE_ONLY
+  MyPass.cpp  
+  DEPENDS
+  intrinsics_gen
+  PLUGIN_TOOL
+  opt
+)
+</code><div class="toolbar"><div class="toolbar-item"><span>Plaintext</span></div></div></pre></div></div>
+
+<p>2.3 在$LLVM_SOURCE/lib/Transforms/CMakeLists.txt内把我们的pass添加进去</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight language-shell code-toolbar"><code class=" language-shell">add_subdirectory(MyPass)
+</code><div class="toolbar"><div class="toolbar-item"><span>Shell</span></div></div></pre></div></div>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/43.png" alt="img" class="img-responsive"></p>
+
+<p>2.4 回到llvm_xcode文件夹重新生成xcode</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight language-plaintext code-toolbar"><code class=" language-plaintext">cmake -G Xcode ../llvm
+</code><div class="toolbar"><div class="toolbar-item"><span>Plaintext</span></div></div></pre></div></div>
+
+<p>2.5 再次打开LLVM.xcodeproj就能找到MyPass的Target。</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/44.png" alt="img" class="img-responsive"></p>
+
+<p>2.6 在MyPass.cpp内编写PASS内容</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight language-c code-toolbar"><code class=" language-c"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/Pass.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/Support/raw_ostream.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/IR/LegacyPassManager.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/Transforms/IPO/PassManagerBuilder.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/IR/Module.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/IR/Function.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/IR/IRBuilder.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/IR/Instructions.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/IR/DebugLoc.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"llvm/IR/DebugInfo.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">&lt;string&gt;</span></span>
+
+using namespace llvm<span class="token punctuation">;</span>
+
+namespace <span class="token punctuation">{</span>
+    <span class="token keyword">struct</span> MyFunctionPass <span class="token punctuation">:</span> public FunctionPass <span class="token punctuation">{</span>
+        <span class="token keyword">static</span> <span class="token keyword">char</span> ID<span class="token punctuation">;</span>
+        <span class="token function">MyFunctionPass</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">:</span> <span class="token function">FunctionPass</span><span class="token punctuation">(</span>ID<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+        bool <span class="token function">runOnFunction</span><span class="token punctuation">(</span>Function <span class="token operator">&amp;</span>F<span class="token punctuation">)</span> override <span class="token punctuation">{</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>F<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">startswith</span><span class="token punctuation">(</span><span class="token string">"my_mark_executed_func"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span> <span class="token comment">// 如果已经插入则不用再次插入</span>
+                  <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            LLVMContext <span class="token operator">&amp;</span>context <span class="token operator">=</span> F<span class="token punctuation">.</span><span class="token function">getParent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">getContext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            BasicBlock <span class="token operator">&amp;</span>bb <span class="token operator">=</span> F<span class="token punctuation">.</span><span class="token function">getEntryBlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            IRBuilder<span class="token operator">&lt;</span><span class="token operator">&gt;</span> <span class="token function">bbBuilder</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>bb<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            IRBuilder<span class="token operator">&lt;</span><span class="token operator">&gt;</span> <span class="token function">contextBuilder</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            Instruction <span class="token operator">*</span>beginInst <span class="token operator">=</span> dyn_cast<span class="token operator">&lt;</span>Instruction<span class="token operator">&gt;</span><span class="token punctuation">(</span>bb<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 所有函数的起始位置</span>
+            FunctionType <span class="token operator">*</span>type <span class="token operator">=</span> FunctionType<span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token function">get</span><span class="token punctuation">(</span>Type<span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token function">getVoidTy</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>Type<span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token function">getInt8PtrTy</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token punctuation">}</span><span class="token punctuation">,</span> false<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 函数的返回类型和参数类型</span>
+            FunctionCallee beginFun <span class="token operator">=</span> F<span class="token punctuation">.</span><span class="token function">getParent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">getOrInsertFunction</span><span class="token punctuation">(</span><span class="token string">"my_mark_executed_func"</span><span class="token punctuation">,</span> type<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取函数</span>
+            CallInst <span class="token operator">*</span>inst <span class="token operator">=</span> contextBuilder<span class="token punctuation">.</span><span class="token function">CreateCall</span><span class="token punctuation">(</span>beginFun<span class="token punctuation">,</span><span class="token punctuation">{</span>bbBuilder<span class="token punctuation">.</span><span class="token function">CreateGlobalStringPtr</span><span class="token punctuation">(</span>F<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 构造函数</span>
+            inst<span class="token operator">-&gt;</span><span class="token function">insertBefore</span><span class="token punctuation">(</span>beginInst<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 插入标记函数</span>
+            
+            <span class="token keyword">auto</span> SP <span class="token operator">=</span> F<span class="token punctuation">.</span><span class="token function">getSubprogram</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            DebugLoc DL <span class="token operator">=</span> DebugLoc<span class="token punctuation">:</span><span class="token punctuation">:</span><span class="token function">get</span><span class="token punctuation">(</span>SP<span class="token operator">-&gt;</span><span class="token function">getScopeLine</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> SP<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            inst<span class="token operator">-&gt;</span><span class="token function">setDebugLoc</span><span class="token punctuation">(</span>DL<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//设置DebugLoc，给debugger使用</span>
+            <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">char</span> MyFunctionPass<span class="token punctuation">:</span><span class="token punctuation">:</span>ID <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword">static</span> RegisterPass<span class="token operator">&lt;</span>MyFunctionPass<span class="token operator">&gt;</span> <span class="token function">X</span><span class="token punctuation">(</span><span class="token string">"func-coverage"</span><span class="token punctuation">,</span> <span class="token string">"A pass that can check function coverage."</span><span class="token punctuation">,</span> false<span class="token punctuation">,</span> false<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">static</span> RegisterStandardPasses <span class="token function">Y</span><span class="token punctuation">(</span>
+    PassManagerBuilder<span class="token punctuation">:</span><span class="token punctuation">:</span>EP_EarlyAsPossible<span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword">const</span> PassManagerBuilder <span class="token operator">&amp;</span>Builder<span class="token punctuation">,</span>
+       legacy<span class="token punctuation">:</span><span class="token punctuation">:</span>PassManagerBase <span class="token operator">&amp;</span>PM<span class="token punctuation">)</span> <span class="token punctuation">{</span> PM<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>new <span class="token function">MyFunctionPass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code><div class="toolbar"><div class="toolbar-item"><span>C</span></div></div></pre></div></div>
+
+<p>2.7 build MyPass可以得到Mypass.dylib</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/45.png" alt="img" class="img-responsive"></p>
+
+<h4 id="3使用pass">3、使用PASS</h4>
+
+<p>3.1 新建一个普通xcode project，并添加一个hook.c的文件，里面是刚才在pass里添加的标记函数</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight language-plaintext code-toolbar"><code class=" language-plaintext">void my_mark_executed_func(char *name ) {
+    printf("方法 %s \n",name);
+}
+</code><div class="toolbar"><div class="toolbar-item"><span>Plaintext</span></div></div></pre></div></div>
+
+<p>3.2 将bulid system改为旧版构建方法，File-Project Setting-Build System</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/46.png" alt="img" class="img-responsive"></p>
+
+<p>3.3 在build setting里添加MyPass.dylib。</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight language-plaintext code-toolbar"><code class=" language-plaintext">-Xclang -load -Xclang Pass路径
+</code><div class="toolbar"><div class="toolbar-item"><span>Plaintext</span></div></div></pre></div></div>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/47.png" alt="img" class="img-responsive"></p>
+
+<p>3.4 在User-Defined内添加CC和CXX，值分别是刚刚构建的clang的路径，让xode使用clang的替代版本</p>
+
+<p>3.5 将Enable Index-While-Building Functionality值改为NO，否则会报错</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/49.png" alt="img" class="img-responsive"></p>
+
+<p>3.6 执行可以获取到log输出方法执行情况</p>
+
+<p><img src="./Clang插桩 - Helloted Blog_files/48.png" alt="img" class="img-responsive"></p>
+
+
+
+                <hr>
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="https://www.helloted.com/ios/2020/06/28/byteorder/" data-toggle="tooltip" data-placement="top" title="" data-original-title="二进制重排">← 上一篇</a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="https://www.helloted.com/ios/2020/09/22/clang-time/" data-toggle="tooltip" data-placement="top" title="" data-original-title="Clang插件统计方法耗时">下一篇 →</a>
+                    </li>
+                    
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<hr>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    <li>
+                        <a href="https://www.helloted.com/feed.xml">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="https://github.com/helloted">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a href="mailto:helloted@live.com">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-envelope fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <p class="copyright text-muted">Copyright © Helloted 2020</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="./Clang插桩 - Helloted Blog_files/jquery.min.js"></script><ins class="adsbygoogle adsbygoogle-noablate" data-adsbygoogle-status="done" style="display: none !important;"><ins id="aswift_0_expand" style="display:inline-table;border:none;height:0px;margin:0;padding:0;position:relative;visibility:visible;width:0px;background-color:transparent;"><ins id="aswift_0_anchor" style="display:block;border:none;height:0px;margin:0;padding:0;position:relative;visibility:visible;width:0px;background-color:transparent;"><iframe id="aswift_0" name="aswift_0" style="left:0;position:absolute;top:0;border:0;width:undefinedpx;height:undefinedpx;" sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation-by-user-activation" frameborder="0" src="./Clang插桩 - Helloted Blog_files/ads.html" marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" allowfullscreen="true" data-google-container-id="a!0" data-load-complete="true"></iframe></ins></ins></ins>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="./Clang插桩 - Helloted Blog_files/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="./Clang插桩 - Helloted Blog_files/clean-blog.min.js"></script>
+
+<script src="./Clang插桩 - Helloted Blog_files/prism.js"></script>
+
+
+    
+
+
+
+
+
+<iframe id="google_osd_static_frame_4586332775491" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;" src="./Clang插桩 - Helloted Blog_files/saved_resource.html"></iframe></body><iframe id="google_esf" name="google_esf" src="./Clang插桩 - Helloted Blog_files/zrt_lookup.html" data-ad-client="ca-pub-4165845420824687" style="display: none;"></iframe></html>

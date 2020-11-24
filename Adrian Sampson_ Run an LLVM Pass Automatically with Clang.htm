@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!-- saved from url=(0056)https://www.cs.cornell.edu/~asampson/blog/clangpass.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <title>
+            Adrian Sampson: Run an LLVM Pass Automatically with Clang
+        </title>
+
+        <link rel="stylesheet" href="./Adrian Sampson_ Run an LLVM Pass Automatically with Clang_files/main.css">
+        <link rel="alternate" type="application/json" href="https://www.cs.cornell.edu/~asampson/feed.json" title="JSON Feed">
+        <link rel="alternate" type="application/rss+xml" href="https://www.cs.cornell.edu/~asampson/blog.xml" title="Atom">
+        <link href="https://micro.blog/samps" rel="me">
+
+        <link rel="icon" href="https://www.cs.cornell.edu/~asampson/media/icon/favicon.ico">
+        <link rel="apple-touch-icon-precomposed" href="https://www.cs.cornell.edu/~asampson/media/icon/favicon152.png">
+
+        
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:site" content="@samps">
+        <meta name="twitter:creator" content="@samps">
+        <meta name="twitter:title" content="Run an LLVM Pass Automatically with Clang">
+        <meta name="twitter:image" content="https://brand.cornell.edu/images/web-logo.jpg">
+        <meta name="twitter:description" content="Lots of research projects need to instrument code while it gets compiled.While LLVM passes are a convenient way to implement instrumentation, theofficial LLVM documentation doesn’t make it clear how to use them that wayeasily. Here’s a trick that lets you instrument programs when compilingthem with the Clang command-line compiler driver.">
+
+        <meta property="og:type" content="article">
+        <meta property="og:title" content="Run an LLVM Pass Automatically with Clang">
+        <meta property="og:description" content="Lots of research projects need to instrument code while it gets compiled.While LLVM passes are a convenient way to implement instrumentation, theofficial LLVM documentation doesn’t make it clear how to use them that wayeasily. Here’s a trick that lets you instrument programs when compilingthem with the Clang command-line compiler driver.">
+        
+
+        
+
+        
+
+        
+    </head>
+    <body>
+        <div class="container">
+
+            
+            <header>
+                <div id="leader">
+                    <h1>
+                        <a href="https://www.cs.cornell.edu/~asampson/">Adrian Sampson</a>
+                    </h1>
+                    <address>
+                        <a href="http://www.cs.cornell.edu/">Department of
+                            Computer Science</a><br>
+                        <a href="http://www.cornell.edu/">Cornell University</a>
+                    </address>
+                </div>
+                <nav>
+                    
+                    
+                    <a href="https://www.cs.cornell.edu/~asampson/">
+                        home
+                    </a>
+                    
+                    <a href="https://www.cs.cornell.edu/~asampson/research.html">
+                        research
+                    </a>
+                    
+                    <a href="https://www.cs.cornell.edu/~asampson/teaching.html">
+                        teaching
+                    </a>
+                    
+                    <a class="active" href="https://www.cs.cornell.edu/~asampson/blog/">
+                        blog
+                    </a>
+                    
+                    <a href="https://www.cs.cornell.edu/~asampson/contact.html">
+                        contact
+                    </a>
+                    
+                </nav>
+            </header>
+            
+
+            <h2 class="with-tagline">Run an LLVM Pass Automatically with Clang</h2>
+
+<p class="tagline">April 20, 2013</p>
+
+<article class="full">
+<p>In lots of research projects that I’ve worked on, I have needed to instrument programs while compiling them. Ideally, I want to do my instrumentation on big, real-world applications that assume a <code>gcc</code>- or <code>g++</code>-like command-line compiler driver in their Makefiles. While the obvious choice for this kind of instrumentation is an <a href="http://llvm.org/docs/WritingAnLLVMPass.html">LLVM pass</a>, the official docs for LLVM make running your custom pass sound tricky. According to them, you need this sort of rigmarole:</p>
+
+<ol>
+  <li>Compile each source file to bitcode with <code>clang -c -emit-llvm code.c</code>.</li>
+  <li>Run your pass by itself with <code>opt -load mypass.so -mypass &lt; code.bc &gt; code_inst.bc</code>.</li>
+  <li>Run the rest of the standard optimizations with <code>opt -O3 &lt; code_inst.bc &gt; code_opt.bc</code>.</li>
+  <li>Compile the optimized bitcode into assembly with <code>llc</code> and then use your favorite assembler and linker to get the rest of the way to an executable.</li>
+</ol>
+
+<p>This process is a pain when what you really need is to run <code>clang</code>, which is command-line-compatible with <code>gcc</code>, just with your own pass slipped in among the rest of the optimizations. Ideally, you would type <code>clang -mypass code.c</code> to do everything at once.</p>
+
+<p>Here’s a trick to enable something like that. You can use LLVM’s <a href="http://llvm.org/docs/doxygen/html/classllvm_1_1PassRegistry.html">pass registry</a> to enable your pass automatically when its shared library is loaded. To do that, just put something like this at the end of your pass code:</p>
+
+<pre><code>static void registerMyPass(const PassManagerBuilder &amp;,
+                           PassManagerBase &amp;PM) {
+    PM.add(new MyPass());
+}
+static RegisterStandardPasses
+    RegisterMyPass(PassManagerBuilder::EP_EarlyAsPossible,
+                   registerMyPass);
+</code></pre>
+
+<p>where <code>MyPass</code> is the name of your pass class. This way, as soon as your shared library, <code>mypass.so</code>, is linked into any LLVM-using tool, it will ask for <code>MyPass</code> to be run. (You can choose when the pass runs by selecting a <a href="http://llvm.org/docs/doxygen/html/classllvm_1_1PassManagerBuilder.html#a575d14758794b0997be4f8edcef7dc91">ExtensionPointTy</a>.)</p>
+
+<p>Now, to load and register your pass, just type:</p>
+
+<pre><code>$ clang -Xclang -load -Xclang mypass.so ...
+</code></pre>
+
+<p>and you’ll have a full-fledged compiler driver augmented with your instrumentation.</p>
+
+<hr>
+
+<p><strong>Update, October 17, 2014:</strong> As of the current release (3.5), LLVM is in the midst of a transition to a new PassManager infrastructure. The old classes have moved into a <code>llvm::legacy</code> namespace. Clang, however, still uses the legacy PassManager, so this technique is still the right one to use.</p>
+
+<p>To explicitly use the legacy components, you may need to include a different file, <code>llvm/IR/LegacyPassManager.h</code>, and refer to <code>legacy::PassManagerBase</code> in your callback. Like so:</p>
+
+<pre><code>#include "llvm/IR/LegacyPassManager.h"
+using namespace llvm;
+static void registerPass(const PassManagerBuilder &amp;,
+                         legacy::PassManagerBase &amp;PM) {
+    ...
+}
+</code></pre>
+
+<p>Cursory searching on the mailing lists has failed to turn up any indication of whether or when Clang might move to the new PassManager infrastructure. If you know more, I’d be interested to hear from you.</p>
+
+</article>
+
+<footer>
+Have comments or questions?
+Please
+<a href="mailto:asampson@cs.cornell.edu?subject=Re:%20Run%20an%20LLVM%20Pass%20Automatically%20with%20Clang">drop me an email</a>
+or tweet to
+<a href="https://twitter.com/samps">@samps</a>.
+If you find a typo, please consider <a href="https://github.com/sampsyo/home/edit/master/_posts/2013-04-20-clangpass.md">sending a pull request</a>.
+</footer>
+
+
+        </div>
+
+        
+
+        
+    
+
+</body></html>

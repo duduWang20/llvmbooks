@@ -1,0 +1,51 @@
+/*
+ * LLVM website style sheet
+ */
+
+/* Common styles */
+.body { color: black; background: white; margin: 0 0 0 0 }
+
+/* No borders on image links */
+a:link img, a:visited img {border-style: none}
+
+address img { float: right; width: 88px; height: 31px; }
+address     { clear: right; }
+
+/* 
+ * Documentation 
+ */
+/* Common for title and header */
+.doc_title, .doc_section, .doc_subsection { 
+  color: #ffffff; background: #330077;
+  font-family: "Georgia,Palatino,Times,Roman"; font-weight: bold;
+  padding-left: 8pt;
+  padding-top: 1px;
+  padding-bottom: 2px
+}
+
+.doc_title      { text-align: left;   font-size: 25pt }
+.doc_section    { text-align: center; font-size: 22pt; }
+.doc_subsection { background: #441188; width: 50%;
+                  text-align: left;   font-size: 12pt; padding: 4pt 4pt 4pt 4pt;
+                  margin: 1.5em 0.5em 1.5em 0.5em }
+
+/* In the future, the 2nd level subsection style may want to become this:
+.doc_subsubsection { margin: 1.5em 0.5em 1.5 0.5em;
+                     font-weight: bold; font-style: oblique;
+                     border-bottom: 2px dotted #999999 }
+*/
+
+/* However, to be consistent with the rest of current documentation which is not
+   all yet using stylesheets, we try to emulate the former layout. */
+.doc_subsubsection { margin: 1.5em 0.5em 1.5em 0.5em;
+                     font-weight: bold;
+                     border-top: 2px solid #cecece }
+
+.doc_text       { text-align: left; padding-left: 20pt }
+
+.doc_footer     { text-align: left; padding: 0 0 0 0 }
+
+.doc_red        { color: red }
+
+.doc_table	{ text-align: center; width: 90%; padding: 1 1 1 1; border: 1 1 1 1 ; }
+

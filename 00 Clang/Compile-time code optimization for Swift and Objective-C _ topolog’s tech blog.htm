@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)https://dmtopolog.com/code-optimization-for-swift-and-objective-c/ -->
+<html lang="en-US" class="js fontawesome-i2svg-active fontawesome-i2svg-complete"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+
+  
+    
+    <!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Compile-time code optimization for Swift and Objective-C | topolog’s tech blog</title>
+<meta name="generator" content="Jekyll v3.9.0">
+<meta property="og:title" content="Compile-time code optimization for Swift and Objective-C">
+<meta name="author" content="Dmitrii Ivanov">
+<meta property="og:locale" content="en_US">
+<meta name="description" content="Some time ago I needed to switch off asserts for one of the configurations in our project. I kinda read somewhere that whether or not asserts compile to the resulting binary depends primarily on the code optimisation level. But I wondered if there was any way to control the asserts without changing the optimisation level? What if I don’t want to touch it for the asserts only? Do we have separate optimisation levels for Swift and Objective-C code? What do they mean, what are they influence on? How do two compilers in the mixed Swift/ObjC project work together optimising the code? What specifically the compiler does for each optimisation level?">
+<meta property="og:description" content="Some time ago I needed to switch off asserts for one of the configurations in our project. I kinda read somewhere that whether or not asserts compile to the resulting binary depends primarily on the code optimisation level. But I wondered if there was any way to control the asserts without changing the optimisation level? What if I don’t want to touch it for the asserts only? Do we have separate optimisation levels for Swift and Objective-C code? What do they mean, what are they influence on? How do two compilers in the mixed Swift/ObjC project work together optimising the code? What specifically the compiler does for each optimisation level?">
+<style type="text/css">svg:not(:root).svg-inline--fa{overflow:visible}.svg-inline--fa{display:inline-block;font-size:inherit;height:1em;overflow:visible;vertical-align:-.125em}.svg-inline--fa.fa-lg{vertical-align:-.225em}.svg-inline--fa.fa-w-1{width:.0625em}.svg-inline--fa.fa-w-2{width:.125em}.svg-inline--fa.fa-w-3{width:.1875em}.svg-inline--fa.fa-w-4{width:.25em}.svg-inline--fa.fa-w-5{width:.3125em}.svg-inline--fa.fa-w-6{width:.375em}.svg-inline--fa.fa-w-7{width:.4375em}.svg-inline--fa.fa-w-8{width:.5em}.svg-inline--fa.fa-w-9{width:.5625em}.svg-inline--fa.fa-w-10{width:.625em}.svg-inline--fa.fa-w-11{width:.6875em}.svg-inline--fa.fa-w-12{width:.75em}.svg-inline--fa.fa-w-13{width:.8125em}.svg-inline--fa.fa-w-14{width:.875em}.svg-inline--fa.fa-w-15{width:.9375em}.svg-inline--fa.fa-w-16{width:1em}.svg-inline--fa.fa-w-17{width:1.0625em}.svg-inline--fa.fa-w-18{width:1.125em}.svg-inline--fa.fa-w-19{width:1.1875em}.svg-inline--fa.fa-w-20{width:1.25em}.svg-inline--fa.fa-pull-left{margin-right:.3em;width:auto}.svg-inline--fa.fa-pull-right{margin-left:.3em;width:auto}.svg-inline--fa.fa-border{height:1.5em}.svg-inline--fa.fa-li{width:2em}.svg-inline--fa.fa-fw{width:1.25em}.fa-layers svg.svg-inline--fa{bottom:0;left:0;margin:auto;position:absolute;right:0;top:0}.fa-layers{display:inline-block;height:1em;position:relative;text-align:center;vertical-align:-.125em;width:1em}.fa-layers svg.svg-inline--fa{-webkit-transform-origin:center center;transform-origin:center center}.fa-layers-counter,.fa-layers-text{display:inline-block;position:absolute;text-align:center}.fa-layers-text{left:50%;top:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);-webkit-transform-origin:center center;transform-origin:center center}.fa-layers-counter{background-color:#ff253a;border-radius:1em;-webkit-box-sizing:border-box;box-sizing:border-box;color:#fff;height:1.5em;line-height:1;max-width:5em;min-width:1.5em;overflow:hidden;padding:.25em;right:0;text-overflow:ellipsis;top:0;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:top right;transform-origin:top right}.fa-layers-bottom-right{bottom:0;right:0;top:auto;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:bottom right;transform-origin:bottom right}.fa-layers-bottom-left{bottom:0;left:0;right:auto;top:auto;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:bottom left;transform-origin:bottom left}.fa-layers-top-right{right:0;top:0;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:top right;transform-origin:top right}.fa-layers-top-left{left:0;right:auto;top:0;-webkit-transform:scale(.25);transform:scale(.25);-webkit-transform-origin:top left;transform-origin:top left}.fa-lg{font-size:1.33333em;line-height:.75em;vertical-align:-.0667em}.fa-xs{font-size:.75em}.fa-sm{font-size:.875em}.fa-1x{font-size:1em}.fa-2x{font-size:2em}.fa-3x{font-size:3em}.fa-4x{font-size:4em}.fa-5x{font-size:5em}.fa-6x{font-size:6em}.fa-7x{font-size:7em}.fa-8x{font-size:8em}.fa-9x{font-size:9em}.fa-10x{font-size:10em}.fa-fw{text-align:center;width:1.25em}.fa-ul{list-style-type:none;margin-left:2.5em;padding-left:0}.fa-ul>li{position:relative}.fa-li{left:-2em;position:absolute;text-align:center;width:2em;line-height:inherit}.fa-border{border:solid .08em #eee;border-radius:.1em;padding:.2em .25em .15em}.fa-pull-left{float:left}.fa-pull-right{float:right}.fa.fa-pull-left,.fab.fa-pull-left,.fal.fa-pull-left,.far.fa-pull-left,.fas.fa-pull-left{margin-right:.3em}.fa.fa-pull-right,.fab.fa-pull-right,.fal.fa-pull-right,.far.fa-pull-right,.fas.fa-pull-right{margin-left:.3em}.fa-spin{-webkit-animation:fa-spin 2s infinite linear;animation:fa-spin 2s infinite linear}.fa-pulse{-webkit-animation:fa-spin 1s infinite steps(8);animation:fa-spin 1s infinite steps(8)}@-webkit-keyframes fa-spin{0%{-webkit-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes fa-spin{0%{-webkit-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);transform:rotate(360deg)}}.fa-rotate-90{-webkit-transform:rotate(90deg);transform:rotate(90deg)}.fa-rotate-180{-webkit-transform:rotate(180deg);transform:rotate(180deg)}.fa-rotate-270{-webkit-transform:rotate(270deg);transform:rotate(270deg)}.fa-flip-horizontal{-webkit-transform:scale(-1,1);transform:scale(-1,1)}.fa-flip-vertical{-webkit-transform:scale(1,-1);transform:scale(1,-1)}.fa-flip-horizontal.fa-flip-vertical{-webkit-transform:scale(-1,-1);transform:scale(-1,-1)}:root .fa-flip-horizontal,:root .fa-flip-vertical,:root .fa-rotate-180,:root .fa-rotate-270,:root .fa-rotate-90{-webkit-filter:none;filter:none}.fa-stack{display:inline-block;height:2em;position:relative;width:2em}.fa-stack-1x,.fa-stack-2x{bottom:0;left:0;margin:auto;position:absolute;right:0;top:0}.svg-inline--fa.fa-stack-1x{height:1em;width:1em}.svg-inline--fa.fa-stack-2x{height:2em;width:2em}.fa-inverse{color:#fff}.sr-only{border:0;clip:rect(0,0,0,0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px}.sr-only-focusable:active,.sr-only-focusable:focus{clip:auto;height:auto;margin:0;overflow:visible;position:static;width:auto}</style><link rel="canonical" href="http://dmtopolog.com/code-optimization-for-swift-and-objective-c/">
+<meta property="og:url" content="http://dmtopolog.com/code-optimization-for-swift-and-objective-c/">
+<meta property="og:site_name" content="topolog’s tech blog">
+<meta property="og:image" content="http://dmtopolog.com/images-posts/2018-12-02-code-optimization-for-swift-and-objective-c/tammy-gann-MSadqTz1TxM-unsplash-2000.jpg">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2018-12-02T00:00:00+00:00">
+<script async="" src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/analytics.js"></script><script type="application/ld+json">
+{"image":{"thumbnail":"images-posts/2018-12-02-code-optimization-for-swift-and-objective-c/tammy-gann-MSadqTz1TxM-unsplash-600.jpg","caption":"Photo by Tammy Gann on Unsplash","url":"http://dmtopolog.com/images-posts/2018-12-02-code-optimization-for-swift-and-objective-c/tammy-gann-MSadqTz1TxM-unsplash-2000.jpg","@type":"imageObject"},"@type":"BlogPosting","headline":"Compile-time code optimization for Swift and Objective-C","dateModified":"2018-12-02T00:00:00+00:00","datePublished":"2018-12-02T00:00:00+00:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://dmtopolog.com/code-optimization-for-swift-and-objective-c/"},"author":{"@type":"Person","name":"Dmitrii Ivanov"},"url":"http://dmtopolog.com/code-optimization-for-swift-and-objective-c/","description":"Some time ago I needed to switch off asserts for one of the configurations in our project. I kinda read somewhere that whether or not asserts compile to the resulting binary depends primarily on the code optimisation level. But I wondered if there was any way to control the asserts without changing the optimisation level? What if I don’t want to touch it for the asserts only? Do we have separate optimisation levels for Swift and Objective-C code? What do they mean, what are they influence on? How do two compilers in the mixed Swift/ObjC project work together optimising the code? What specifically the compiler does for each optimisation level?","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+  
+
+  <script>
+    /* Cut the mustard */
+    if ( 'querySelector' in document && 'addEventListener' in window ) {
+      document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + 'js';
+    }
+  </script>
+
+  <link rel="stylesheet" href="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/main.css">
+  <link rel="stylesheet" href="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/default.css">
+  <link rel="alternate" type="application/atom+xml" title="topolog&#39;s tech blog" href="https://dmtopolog.com/feed.xml">
+<link rel="shortcut icon" type="image/png" href="https://dmtopolog.com/code-optimization-for-swift-and-objective-c/favicon.png">
+
+</head>
+
+
+  <body class="layout--post  compile-time-code-optimization-for-swift-and-objective-c">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="https://dmtopolog.com/code-optimization-for-swift-and-objective-c/#primary-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="https://dmtopolog.com/code-optimization-for-swift-and-objective-c/#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="https://dmtopolog.com/code-optimization-for-swift-and-objective-c/#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+  <div class="navigation-wrapper">
+    <a href="https://dmtopolog.com/code-optimization-for-swift-and-objective-c/#menu-toggle" id="menu-toggle">Menu</a>
+    <nav id="primary-nav" class="site-nav animated drop">
+      <ul><li><a href="https://dmtopolog.com/">Home</a></li><li><a href="https://dmtopolog.com/posts/">Posts</a></li><li><a href="https://dmtopolog.com/tags/">Tags</a></li><li><a href="https://dmtopolog.com/about/">About</a></li></ul>
+    </nav>
+  </div><!-- /.navigation-wrapper -->
+
+
+    <header class="masthead">
+  <div class="wrap">
+    
+    
+    
+  </div>
+</header><!-- /.masthead -->
+
+
+    <main id="main" class="main-content" aria-label="Content">
+  <article class="h-entry">
+    
+  
+  
+  
+
+  <div class="page-image">
+    <img src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/tammy-gann-MSadqTz1TxM-unsplash-2000.jpg" class="entry-feature-image u-photo" alt="Compile-time code optimization for Swift and Objective-C" style="margin-top: 0;">
+    
+      <div class="page-image-caption"><p>Photo by Tammy Gann on Unsplash</p>
+</div>
+    
+  </div>
+
+
+    <div class="page-wrapper">
+      <header class="page-header">
+        
+        
+          <h1 id="page-title" class="page-title p-name">Compile-time code optimization for Swift and Objective-C
+</h1>
+        
+      </header>
+
+      <div class="page-sidebar">
+        <div class="page-author h-card p-author"><img src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/me_square-300.jpg" class="author-avatar u-photo" alt="Dmitrii Ivanov"><div class="author-info"><div class="author-name">
+        <span class="p-name">Dmitrii Ivanov</span>
+      </div><ul class="author-links"><li class="author-link">
+            <a class="u-url" rel="me" href="https://twitter.com/dmtopolog"><svg class="svg-inline--fa fa-twitter-square fa-w-14 fa-lg" title="Twitter" aria-labelledby="svg-inline--fa-title-1" data-prefix="fab" data-icon="twitter-square" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><title id="svg-inline--fa-title-1">Twitter</title><path fill="currentColor" d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-48.9 158.8c.2 2.8.2 5.7.2 8.5 0 86.7-66 186.6-186.6 186.6-37.2 0-71.7-10.8-100.7-29.4 5.3.6 10.4.8 15.8.8 30.7 0 58.9-10.4 81.4-28-28.8-.6-53-19.5-61.3-45.5 10.1 1.5 19.2 1.5 29.6-1.2-30-6.1-52.5-32.5-52.5-64.4v-.8c8.7 4.9 18.9 7.9 29.6 8.3a65.447 65.447 0 0 1-29.2-54.6c0-12.2 3.2-23.4 8.9-33.1 32.3 39.8 80.8 65.8 135.2 68.6-9.3-44.5 24-80.6 64-80.6 18.9 0 35.9 7.9 47.9 20.7 14.8-2.8 29-8.3 41.6-15.8-4.9 15.2-15.2 28-28.8 36.1 13.2-1.4 26-5.1 37.8-10.2-8.9 13.1-20.1 24.7-32.9 34z"></path></svg><!-- <i class="fab fa-twitter-square fa-lg" title="Twitter"></i> --></a>
+          </li><li class="author-link">
+            <a class="u-url" rel="me" href="https://github.com/dmivanov"><svg class="svg-inline--fa fa-github-square fa-w-14 fa-lg" title="GitHub" aria-labelledby="svg-inline--fa-title-2" data-prefix="fab" data-icon="github-square" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><title id="svg-inline--fa-title-2">GitHub</title><path fill="currentColor" d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zM277.3 415.7c-8.4 1.5-11.5-3.7-11.5-8 0-5.4.2-33 .2-55.3 0-15.6-5.2-25.5-11.3-30.7 37-4.1 76-9.2 76-73.1 0-18.2-6.5-27.3-17.1-39 1.7-4.3 7.4-22-1.7-45-13.9-4.3-45.7 17.9-45.7 17.9-13.2-3.7-27.5-5.6-41.6-5.6-14.1 0-28.4 1.9-41.6 5.6 0 0-31.8-22.2-45.7-17.9-9.1 22.9-3.5 40.6-1.7 45-10.6 11.7-15.6 20.8-15.6 39 0 63.6 37.3 69 74.3 73.1-4.8 4.3-9.1 11.7-10.6 22.3-9.5 4.3-33.8 11.7-48.3-13.9-9.1-15.8-25.5-17.1-25.5-17.1-16.2-.2-1.1 10.2-1.1 10.2 10.8 5 18.4 24.2 18.4 24.2 9.7 29.7 56.1 19.7 56.1 19.7 0 13.9.2 36.5.2 40.6 0 4.3-3 9.5-11.5 8-66-22.1-112.2-84.9-112.2-158.3 0-91.8 70.2-161.5 162-161.5S388 165.6 388 257.4c.1 73.4-44.7 136.3-110.7 158.3zm-98.1-61.1c-1.9.4-3.7-.4-3.9-1.7-.2-1.5 1.1-2.8 3-3.2 1.9-.2 3.7.6 3.9 1.9.3 1.3-1 2.6-3 3zm-9.5-.9c0 1.3-1.5 2.4-3.5 2.4-2.2.2-3.7-.9-3.7-2.4 0-1.3 1.5-2.4 3.5-2.4 1.9-.2 3.7.9 3.7 2.4zm-13.7-1.1c-.4 1.3-2.4 1.9-4.1 1.3-1.9-.4-3.2-1.9-2.8-3.2.4-1.3 2.4-1.9 4.1-1.5 2 .6 3.3 2.1 2.8 3.4zm-12.3-5.4c-.9 1.1-2.8.9-4.3-.6-1.5-1.3-1.9-3.2-.9-4.1.9-1.1 2.8-.9 4.3.6 1.3 1.3 1.8 3.3.9 4.1zm-9.1-9.1c-.9.6-2.6 0-3.7-1.5s-1.1-3.2 0-3.9c1.1-.9 2.8-.2 3.7 1.3 1.1 1.5 1.1 3.3 0 4.1zm-6.5-9.7c-.9.9-2.4.4-3.5-.6-1.1-1.3-1.3-2.8-.4-3.5.9-.9 2.4-.4 3.5.6 1.1 1.3 1.3 2.8.4 3.5zm-6.7-7.4c-.4.9-1.7 1.1-2.8.4-1.3-.6-1.9-1.7-1.5-2.6.4-.6 1.5-.9 2.8-.4 1.3.7 1.9 1.8 1.5 2.6z"></path></svg><!-- <i class="fab fa-github-square fa-lg" title="GitHub"></i> --></a>
+          </li><li class="author-link">
+            <a class="u-url" rel="me" href="https://www.linkedin.com/in/ivanovdmitrii/"><svg class="svg-inline--fa fa-linkedin fa-w-14 fa-lg" title="LinkedIn" aria-labelledby="svg-inline--fa-title-3" data-prefix="fab" data-icon="linkedin" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><title id="svg-inline--fa-title-3">LinkedIn</title><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg><!-- <i class="fab fa-linkedin fa-lg" title="LinkedIn"></i> --></a>
+          </li></ul>
+
+<span class="read-time">18 min read</span>
+
+    <time class="page-date dt-published" datetime="2018-12-02T00:00:00+00:00"><a class="u-url" href="https://dmtopolog.com/code-optimization-for-swift-and-objective-c/">December 2, 2018</a>
+</time>
+
+  </div>
+</div>
+
+        
+  <h3 class="page-taxonomies-title">Categories</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy">Tech Blog</li>
+  </ul>
+
+
+        
+  <h3 class="page-taxonomies-title">Tags</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy"><a href="https://dmtopolog.com/tags/#build-process" title="Pages tagged build process" rel="tag">build process</a></li><li class="page-taxonomy"><a href="https://dmtopolog.com/tags/#compiler" title="Pages tagged compiler" rel="tag">compiler</a></li><li class="page-taxonomy"><a href="https://dmtopolog.com/tags/#ios" title="Pages tagged iOS" rel="tag">iOS</a></li>
+  </ul>
+
+
+      </div>
+
+      <div class="page-content">
+        <div class="e-content">
+          <p>Some time ago I needed to switch off asserts for one of the configurations in our project. I kinda read somewhere that whether or not asserts compile to the resulting binary depends primarily on the code optimisation level. But I wondered if there was any way to control the asserts without changing the optimisation level? What if I don’t want to touch it for the asserts only? Do we have separate optimisation levels for Swift and Objective-C code? What do they mean, what are they influence on? How do two compilers in the mixed Swift/ObjC project work together optimising the code? What specifically the compiler does for each optimisation level?</p>
+
+<p>To answer these question I tried to get some details about xcode build pipeline, about how the compilers work and where is the place for the code optimization in the process. Tell you in advance that I couldn’t find satisfying answers for all of my questions, but the picture of the building process, compilers and optimisation levels became more clear for me.</p>
+
+<h3 id="compilers-in-building-ios-apps">Compilers in building iOS apps</h3>
+
+<blockquote>
+  <p>The compiler is just a big function which takes a string and returns a big int</p>
+
+  <p>-Scott Owens ICFP 2017</p>
+</blockquote>
+
+<p>First some general theory. There are several ways to build an iOS/macOS project: using Xcode, xcodebuild from the command line, fastlane (which uses xcodebuild under the hood), manual scripts or something else. Anyway you need to do the same set of actions to make the app package which can be installed on a device.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ swiftc -module-name YourModule -target arm64-apple-ios12.0 -swift-version 4.2 ...
+$ clang -x objective-c -arch arm64 ... YourFile.m -o YourFile.o
+$ ld -o YourProject -framework YourFile.o ...
+$ actool --app-icon AppIcon ... Assets.xcassets
+$ ...
+</code></pre></div></div>
+<p>or</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xcodebuild -target YourProject -xcconfig your_configuration_file.xcconfig
+</code></pre></div></div>
+
+<p>Code compilation is one of the steps you need to do (together with linking, bundling the resources, code signing and so on).</p>
+
+<p>Originally we have our source code written in some high level programming language: ObjC, Swift, C++ (you also have some resources like images, strings, fonts etc., but they are out of scope of this topic). Compiler’s job is to translate our high level source code into low level machine code to create an executable program. There are different types of compilers but in our iOS/macOS world we deal with ones which can be divided into a frontend and a backend. The frontend takes our source code and converts it into some intermediate language understandable for the backend. The backend takes this intermediate representation and turns it into machine code with the regard of the specific operation system and processor architecture. That’s the essence of this two entities.</p>
+
+<p>There are different pipelines for Swift and ObjC but both of them are backed by LLVM.</p>
+
+<p>LLVM is a big project including LLVM Core as a backend, Clang as “LLVM native” frontend for C language family (C/ObjC/C++/ObjC++) and interaction protocol between the frontend and the backend. The major part of this protocol is LLVM IR (Intermediate Representation) - the intermediate language understandable for both the front and the back. It doesn’t matter for LLVM Core exactly what frontend has produced the IR-code out of the source code. The Core just takes this representation works with it and generates an executable or dynamic library.</p>
+
+<p>Although Clang is sometimes considered as a part of LLVM, the entire idea of the LLVM project is that the frontend is decoupled from the backend. Swift development team (which includes several members of LLVM community) managed to leverage it and use the same LLVM Core as a backend for the swift compiler.</p>
+
+<h3 id="objective-c-pipeline">Objective-C pipeline</h3>
+
+<p>So for good old ObjC code the pipeline looks like this:</p>
+
+<p><img src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/clang_pipeline.png" alt=""></p>
+
+<p>You can see that the first conversion Clang makes over your code is creation of AST’ (Abstract Syntax Tree) - the representation where all the functions, operators, variables, declarations.. are nodes of the huge semantic tree. Here is an example of AST:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">cat</span> <span class="n">test</span><span class="p">.</span><span class="n">cc</span>
+ <span class="kt">int</span> <span class="nf">f</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="mi">42</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+ <span class="p">}</span>
+</code></pre></div></div>
+
+<p>turns into</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$</span> <span class="n">clang</span> <span class="o">-</span><span class="n">Xclang</span> <span class="o">-</span><span class="n">ast</span><span class="o">-</span><span class="n">dump</span> <span class="o">-</span><span class="n">fsyntax</span><span class="o">-</span><span class="n">only</span> <span class="n">test</span><span class="p">.</span><span class="n">cc</span>
+ <span class="n">TranslationUnitDecl</span> <span class="mh">0x5aea0d0</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">invalid</span> <span class="n">sloc</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span>
+ <span class="p">...</span> <span class="n">cutting</span> <span class="n">out</span> <span class="n">internal</span> <span class="n">declarations</span> <span class="n">of</span> <span class="n">clang</span> <span class="p">...</span>
+ <span class="err">`</span><span class="o">-</span><span class="n">FunctionDecl</span> <span class="mh">0x5aeab50</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">test</span><span class="p">.</span><span class="n">cc</span><span class="o">:</span><span class="mi">1</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span> <span class="n">line</span><span class="o">:</span><span class="mi">4</span><span class="o">:</span><span class="mi">1</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="n">f</span> <span class="err">'</span><span class="kt">int</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="err">'</span>
+  <span class="o">|-</span><span class="n">ParmVarDecl</span> <span class="mh">0x5aeaa90</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">line</span><span class="o">:</span><span class="mi">1</span><span class="o">:</span><span class="mi">7</span><span class="p">,</span> <span class="n">col</span><span class="o">:</span><span class="mi">11</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="n">x</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span>
+  <span class="err">`</span><span class="o">-</span><span class="n">CompoundStmt</span> <span class="mh">0x5aead88</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">14</span><span class="p">,</span> <span class="n">line</span><span class="o">:</span><span class="mi">4</span><span class="o">:</span><span class="mi">1</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span>
+   <span class="o">|-</span><span class="n">DeclStmt</span> <span class="mh">0x5aead10</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">line</span><span class="o">:</span><span class="mi">2</span><span class="o">:</span><span class="mi">3</span><span class="p">,</span> <span class="n">col</span><span class="o">:</span><span class="mi">24</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span>
+   <span class="o">|</span> <span class="err">`</span><span class="o">-</span><span class="n">VarDecl</span> <span class="mh">0x5aeac10</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">3</span><span class="p">,</span> <span class="n">col</span><span class="o">:</span><span class="mi">23</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="n">result</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span>
+   <span class="o">|</span>  <span class="err">`</span><span class="o">-</span><span class="n">ParenExpr</span> <span class="mh">0x5aeacf0</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">16</span><span class="p">,</span> <span class="n">col</span><span class="o">:</span><span class="mi">23</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span>
+   <span class="o">|</span>   <span class="err">`</span><span class="o">-</span><span class="n">BinaryOperator</span> <span class="mh">0x5aeacc8</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">17</span><span class="p">,</span> <span class="n">col</span><span class="o">:</span><span class="mi">21</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="err">'</span><span class="kt">int</span><span class="sc">' '</span><span class="o">/</span><span class="err">'</span>
+   <span class="o">|</span>    <span class="o">|-</span><span class="n">ImplicitCastExpr</span> <span class="mh">0x5aeacb0</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">17</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">LValueToRValue</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span>
+   <span class="o">|</span>    <span class="o">|</span> <span class="err">`</span><span class="o">-</span><span class="n">DeclRefExpr</span> <span class="mh">0x5aeac68</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">17</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span> <span class="n">lvalue</span> <span class="n">ParmVar</span> <span class="mh">0x5aeaa90</span> <span class="sc">'x'</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span>
+   <span class="o">|</span>    <span class="err">`</span><span class="o">-</span><span class="n">IntegerLiteral</span> <span class="mh">0x5aeac90</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">21</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span> <span class="mi">42</span>
+   <span class="err">`</span><span class="o">-</span><span class="n">ReturnStmt</span> <span class="mh">0x5aead68</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">line</span><span class="o">:</span><span class="mi">3</span><span class="o">:</span><span class="mi">3</span><span class="p">,</span> <span class="n">col</span><span class="o">:</span><span class="mi">10</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span>
+    <span class="err">`</span><span class="o">-</span><span class="n">ImplicitCastExpr</span> <span class="mh">0x5aead50</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">10</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">LValueToRValue</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span>
+     <span class="err">`</span><span class="o">-</span><span class="n">DeclRefExpr</span> <span class="mh">0x5aead28</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">col</span><span class="o">:</span><span class="mi">10</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="err">'</span><span class="kt">int</span><span class="err">'</span> <span class="n">lvalue</span> <span class="n">Var</span> <span class="mh">0x5aeac10</span> <span class="err">'</span><span class="n">result</span><span class="sc">' '</span><span class="kt">int</span><span class="err">'</span>
+</code></pre></div></div>
+
+<p>Then AST is being converted into LLVM IR which is more low level (less human readable) but some part’s of the source code still can be understood <em>(<a href="http://llvm.org/docs/LangRef.html">here</a> is a detailed description of the language)</em>:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+ <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>turns into</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>define i32 @main() #0 {
+  %1 = alloca i32, align 4
+  store i32 0, i32* %1
+  ret i32 0
+ }
+</code></pre></div></div>
+
+<p>LLVM IR is being passed from Clang to LLVM Core where the code is optimized (if applicable) and converted to a target specific machine code. As a result we have a bunch of object files (*.o) which are linked together later on and merged into an executable or dynamic library. The output of this last stage is typically called an “a.out”, “.dylib” or “.so” file.</p>
+
+<p>As you could already see LLVM Core is the place where the code is optimized, and Intermediate Representation is specifically the source of these optimizations.</p>
+
+<p>Here are <strong>LLVM optimization levels</strong> with brief corresponding descriptions:</p>
+
+<ul>
+  <li><strong>None [-O0]</strong> The compiler does not attempt to optimize code. With this setting, the compiler’s goal is to reduce the cost of compilation and to make debugging produce the expected results. Statements are independent: if you stop the program with a breakpoint between statements, you can then assign a new value to any variable or change the program counter to any other statement in the function and get exactly the results you would expect from the source code. Use this option during development when you are focused on solving logic errors and need a fast compile time. Do not use this option for shipping your executable.</li>
+  <li><strong>Fast [-O, O1]</strong> The compiler performs simple optimizations to boost code performance while minimizing the impact to compile time. This option also uses more memory during compilation.</li>
+  <li><strong>Faster [-O2]</strong> The compiler performs nearly all supported optimizations that do not require a space-time tradeoff. The compiler does not perform loop unrolling or function inlining with this option. This option increases both compilation time and the performance of generated code.</li>
+  <li><strong>Fastest [-O3]</strong> The compiler performs all optimizations in an attempt to improve the speed of the generated code. This option can increase the size of generated code as the compiler performs aggressive inlining of functions. (This option is generally not recommended.)</li>
+  <li><strong>Fastest, Smallest [-Os]</strong> The compiler performs all optimizations that do not typically increase code size. This is the preferred option for shipping code because it gives your executable a smaller memory footprint.</li>
+  <li><strong>Fastest, Aggressive optimization [-Ofast]</strong> This setting enables ‘Fastest’ but also enables aggressive optimizations that may break strict standards compliance but should work well on well-behaved code.</li>
+</ul>
+
+<p>Depending on the level LLVM makes several passes through given IR analysing and changing the code. Looking for the lists of specific passes for each optimization level I didn’t manage to find anything other that <a href="https://stackoverflow.com/a/15548189/8915388">this SO answer</a> which arises more additional questions. The official list of LLVM passes (without separation to different levels) can be found <a href="http://llvm.org/docs/Passes.html">here</a>.</p>
+
+<p>When creating a new project Xcode sets up 2 configurations with following default values for the LLVM optimization levels:</p>
+
+<ol>
+  <li>Debug: <strong>-O0 (none)</strong> - the fastest compile time, the easiest debugging</li>
+  <li>Release: <strong>-Os (fastest, smallest)</strong> - the best combination of small binary size and fast runtime execution</li>
+</ol>
+
+<p>Interestingly enough, configuration option responsible for C-family language optimisation calls (in project.pbxproj file) is called <code class="language-plaintext highlighter-rouge">GCC_OPTIMIZATION_LEVEL</code>. If you dive a bit in the history of Xcode you will see that till Xcode 3 the GCC (<a href="https://gcc.gnu.org/">GNU Compiler Collection</a>) was the compiler used by the IDE, then there was a transition period when the user could change the compiler in the target settings and with the release of Xcode 5 CLang became the only option (<a href="https://useyourloaf.com/blog/compiler-options-in-xcode-gcc-or-llvm">a piece of such history</a>). Seems like the target property name still has that legacy.</p>
+
+<h3 id="swift-pipeline">Swift pipeline</h3>
+
+<p>Swift is young and rapidly developing language. So as it’s compiler. In terms of code optimisation some features are being changed and new features appear almost every year. (What I’m writing here about is valid for Swift 4.2 and Xcode 10)</p>
+
+<p>Let’s take a look at the compilation pipeline for Swift:</p>
+
+<p><img src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/swiftc_pipeline.png" alt=""></p>
+
+<p>You can see lots of similarities with the one for ObjC: not only the same backend but also the frontend essentially works similarly. Lexical analysis, tokenization (separating some lexical items from the raw string), building AST, type checking. The main difference is the presence of SIL (Swift Intermediate Language) - another intermediate code representation between AST and LLVM IR.</p>
+
+<p>The Swift development team took Clang as an example for a frontend, tried to use all Clang’s advantages and compensate some flaws. One of that flaws was inability to implement some high level analysis, reliable diagnostics and optimizations for which neither ATS nor LLVM IR were a proper material. So SIL was the solution for this problem.</p>
+
+<p>Here is an example of how swift function looks in SIL:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">fibonacci</span><span class="p">(</span><span class="nv">lim</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="n">lim</span> <span class="p">{</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>turns into</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sil</span> <span class="err">@</span><span class="n">fibonacci</span><span class="o">:</span> <span class="err">$</span><span class="p">(</span><span class="n">Swift</span><span class="p">.</span><span class="n">Int</span><span class="p">)</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="n">entry</span><span class="p">(</span><span class="o">%</span><span class="n">limi</span><span class="o">:</span> <span class="err">$</span><span class="n">Swift</span><span class="p">.</span><span class="n">Int</span><span class="p">)</span><span class="o">:</span>
+    <span class="o">%</span><span class="n">lim</span> <span class="o">=</span> <span class="n">struct_extract</span> <span class="o">%</span><span class="n">limi</span><span class="o">:</span> <span class="err">$</span><span class="n">Swift</span><span class="p">.</span><span class="n">Int</span><span class="p">,</span> <span class="err">#</span><span class="n">Int</span><span class="p">.</span><span class="n">value</span>
+    <span class="o">%</span><span class="n">print</span> <span class="o">=</span> <span class="n">function_ref</span> <span class="err">@</span><span class="n">print</span><span class="o">:</span> <span class="err">$</span><span class="p">(</span><span class="n">Swift</span><span class="p">.</span><span class="n">Int</span><span class="p">)</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="p">()</span>
+    <span class="o">%</span><span class="n">a0</span> <span class="o">=</span> <span class="n">integer_literal</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="o">%</span><span class="n">b0</span> <span class="o">=</span> <span class="n">integer_literal</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">,</span> <span class="mi">1</span>
+    <span class="o">%</span><span class="n">lt</span> <span class="o">=</span> <span class="n">builtin</span> <span class="s">"icmp_lt_Int64"</span><span class="p">(</span><span class="o">%</span><span class="n">b</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">,</span> <span class="o">%</span><span class="n">lim</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">)</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int1</span>
+    <span class="n">cond_br</span> <span class="o">%</span><span class="n">lt</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int1</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">exit</span>
+    <span class="n">br</span> <span class="n">loop</span><span class="p">(</span><span class="o">%</span><span class="n">a0</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">,</span> <span class="o">%</span><span class="n">b0</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">)</span>
+  <span class="n">loop</span><span class="p">(</span><span class="o">%</span><span class="n">a</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">,</span> <span class="o">%</span><span class="n">b</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">)</span><span class="o">:</span>
+  <span class="nl">body:</span>
+    <span class="o">%</span><span class="n">b1</span> <span class="o">=</span> <span class="k">struct</span> <span class="err">$</span><span class="n">Swift</span><span class="p">.</span><span class="n">Int</span> <span class="p">(</span><span class="o">%</span><span class="n">b</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">)</span>
+    <span class="n">apply</span> <span class="o">%</span><span class="n">print</span><span class="p">(</span><span class="o">%</span><span class="n">b1</span><span class="p">)</span> <span class="o">:</span> <span class="err">$</span><span class="p">(</span><span class="n">Swift</span><span class="p">.</span><span class="n">Int</span><span class="p">)</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="p">()</span>
+    <span class="o">%</span><span class="n">c</span> <span class="o">=</span> <span class="n">builtin</span> <span class="s">"add_Int64"</span><span class="p">(</span><span class="o">%</span><span class="n">a</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">,</span> <span class="o">%</span><span class="n">b</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">)</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span>
+    <span class="n">br</span> <span class="n">loop</span><span class="p">(</span><span class="o">%</span><span class="n">b</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">,</span> <span class="o">%</span><span class="n">c</span><span class="o">:</span> <span class="err">$</span><span class="n">Builtin</span><span class="p">.</span><span class="n">Int64</span><span class="p">)</span>
+  <span class="nl">exit:</span>
+    <span class="o">%</span><span class="n">unit</span> <span class="o">=</span> <span class="n">tuple</span> <span class="p">()</span>
+    <span class="k">return</span> <span class="o">%</span><span class="n">unit</span><span class="o">:</span> <span class="err">$</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>So.. what’s about optimizations? You might already got it that for swift code we have the same low level LLVM optimizations made over LLVM IR, plus we have some set of additional optimizations made on a higher level by swift compiler over SIL.</p>
+
+<p>At different steps the parts of the Swift compiler produce different kinds of SIL. At the beginning SILGen produces so called “raw SIL”. Raw SIL is just another representation of your code: no diagnostics, no changes, potential data flow errors. A small set of optimisations is being made on the raw SIL (even if you have all the optimizations switched off) - <strong>Guaranteed Optimization Passes and Diagnostic Passes</strong>:</p>
+
+<ul>
+  <li><strong>Mandatory inlining</strong> inlines calls to “transparent” functions.</li>
+  <li><strong>Memory promotion</strong> is implemented as two optimization phases, the first of which performs capture analysis to promote alloc_box instructions to alloc_stack, and the second of which promotes non-address-exposed alloc_stack instructions to SSA registers.</li>
+  <li><strong>Constant propagation</strong> folds constant expressions and propagates the constant values. If an arithmetic overflow occurs during the constant expression computation, a diagnostic is issued.</li>
+  <li><strong>Return analysis</strong> verifies that each function returns a value on every code path and doesn’t “fall off the end” of its definition, which is an error. It also issues an error when a noreturn function returns.</li>
+  <li><strong>Critical edge splitting</strong> splits all critical edges from terminators that don’t support arbitrary basic block arguments (all non cond_branch terminators).</li>
+</ul>
+
+<p>If all diagnostic passes succeed, the final result is the “canonical SIL” for the program. Canonical SIL means that<span class="Apple-converted-space"> guaranteed optimizations and diagnostics were done, so all the data flow errors should be eliminated and certain instructions must be canonicalized to simpler forms. And here is the turn for <strong>General Optimization Passes</strong>, which are done (or not done) according to the optimization level you set up:</span></p>
+
+<ul>
+  <li><strong>Generic Specialization</strong> analyses specialized calls to generic functions and generates new specialized version of the functions. Then it rewrites all specialized usages of the generic to a direct call of the appropriate specialized function.</li>
+  <li><strong>Witness and VTable Devirtualization</strong> for a given type looks up the associated method from a class’s vtable or a type witness table and replaces the indirect virtual call with a call to the mapped function.</li>
+  <li><strong>Performance Inlining</strong></li>
+  <li><strong>Reference Counting Optimizations</strong></li>
+  <li><strong>Memory Promotion/Optimizations</strong></li>
+  <li><strong>High-level domain specific optimizations.</strong> The Swift compiler implements high-level optimizations on basic Swift containers such as Array or String. Domain specific optimizations require a defined interface between the standard library and the optimizer.</li>
+</ul>
+
+<p>Until Swift 4.1 swift compiler had only two optimization levels: [-Onone] and [-O]. But now there are already 3 different levels:</p>
+
+<ul>
+  <li><strong>None [-Onone]</strong></li>
+  <li><strong>Optimize for speed [-O]</strong></li>
+  <li><strong>Optimize for size [-Osize]</strong></li>
+</ul>
+
+<p>Optimization for speed includes all the General Optimization Passes listed before. Optimization for size (appeared in Swift 4.1) is claimed to have the same optimizations but with the additional parameter - size limitation. Basically the compiler tries to reduce code duplication when optimizing the code. Specifically it tries to be a bit smarter in function inlining (not doing the job if it doesn’t decrease a code size). Also the compiler is able to extract some code into a helper functions which also decrease the resulting code size. Optimization for size is an analog of <strong>Fastest, Smallest</strong> optimization made by LLVM.</p>
+
+<p>The trade-off between the two optimization level is as following: size optimization can save you 5%-30% of the code size, performance optimization can improve the speed of the code up to 5%.</p>
+
+<p>Of course we also shouldn’t forget about the Whole-Module Optimization (appeared in Swift 3). Now this property sits in the project settings as Swift compilation mode and has two options:</p>
+
+<ul>
+  <li>Incremental (Single file in Xcode 9.3)</li>
+  <li>Whole module</li>
+</ul>
+
+<p>The essence of the optimisation is intelligibly described in the official <a href="https://swift.org/blog/whole-module-optimizations">swift blog.</a> But briefly it’s not related to how the compiler process the source code, but what exactly it takes as an input for its work. In incremental (single file) mode the compiler works separately with each swift file doing all the analysis and optimisations. In a whole-module mode it “combines” all the swift source files in one module all together and takes the entire module as a source for all the processing. Of course every mode has its trade-offs. Whole-module optimisation has several significant benefits based on the bigger context for the optimizations (whole module instead of just one file) - when the compiler knows more about the code it can do much more for you in terms of optimisation. But it’s clear that in this case the compiler needs to recompile the entire module every time you run it, even if you made just a small change in one file (as there are know separate files for the compiler). That’s why by default in the new Xcode project the debug configuration has an incremental compilation mode (almost no optimizations, the fastest incremental compilation) and the release configuration has whole-module optimisation switched on (no need in benefits of incremental compilation, better optimisations).</p>
+
+<p>There is also kind of an optimization option <strong>-Ounchecked</strong> compiler flag which was one of the options of the Optimization level in previous Xcode versions and now is called Disable Safety Checks. It’s responsible for removing some optimization passes related to things like int overflow. But there are <a href="https://forums.swift.org/t/deprecating-ounchecked/6928/10">some arguments</a> if it’s an “optimization level” in a first place, and where is it’s place in the compiler.</p>
+
+<p>We’ve already mentioned that there are 2 sets of optimisation passes for swift code: frontend optimizations (made by SIL optimizer) and backend optimization (made by LLVM Core). So you might think: “Wait.. if we have whole-module mode turned on and the compiler treats the entire module - which often means the entire project&lt;/em&gt; - as the big chunk of code, so we miss all the concurrency benefits. We cannot process different parts of the module simultaneously anymore”. And partly you are right. For the frontend the compilation of the entire module is indeed one single process. But it seems that Apple engineers managed to split the module for LLVM, so at least the backend can apply some concurrency to speed up the compilation.</p>
+
+<h3 id="how-can-we-use-this-information-in-our-daily-routine">How can we use this information in our daily routine?</h3>
+
+<p>Ok. The last question is why should we care about the optimization level? Why just not trust apple with its predefined project settings and don’t waste the limited space in your head with this information?</p>
+
+<p>Basically it’s that kind of knowledge which not just interesting to get, but also can suddenly be helpful in a future debugging in some cases which I cannot imagine now. But right here I can list at least couple of reasons why this can be useful.</p>
+
+<h5 id="sizeperformancetime">Size/performance/time</h5>
+
+<p>There are several classical triangles like this when you have to prioritise the most important vertices because it’s all about trade-offs, if you pick one characteristic the other will inevitably suffer. Here we have size of the binary output, performance of the resulting code and time of compilation. So if we wan’t to achieve the smallest compilation time we should switch all the optimizations off and so the performance and the size will be worse than they could have been. If performance is our primary goal we should be ready to spare some extra time for the compiler and be ready that the resulting size might be a bit bigger because some performance optimizations cause code duplication. If the size is paramount so we will have not the best performance and not the minimal compilation time.</p>
+
+<p>Fortunately engineers working on the compiler understand that usually we can sacrifice some performance in sake of the app size and some size in sake of performance, so we have optimization mode with the best combination of this two factors (needless to say that compilation time is the price we pay for that). As a result we have <strong>[-Os]</strong> optimization in LLVM and <strong>[-Osize]</strong> in Swift compiler, which aim to give us the best traid-off for production.</p>
+
+<h5 id="debugging">Debugging</h5>
+
+<p>I’ve already written that we don’t usually need optimizations switched on for the debug configuration. Firstly, we want to decrease the compilation time as we run the compiler dozens times a day. But other than that we don’t want the compiler to rearrange our code much because in this case it is hard to debug it. If the resulting code running on the device or simulator is highly optimized, it might be impossible for the debugger to fire your breakpoints, step into the code line-by-line or expose some variables for you. Debugging is kind of a reverse engineering that the debugger makes for you to connect some piece of running compiled code with the source code you see in IDE, and optimisations make this job way more difficult for the debugger.</p>
+
+<p>Quite often there are several configurations in big production projects (more than just Debug and Release), and they might have different optimization levels. That’s definitely something you have to consider when switching from one configuration to another for debugging.</p>
+
+<h5 id="assertions">Assertions</h5>
+
+<p>Coming back to the original question about the asserts: first of all you need to understand that Swift and ObjC asserts are two different matters. So to handle them you have to separately communicate to both compilers.</p>
+
+<p><strong>Asserts in Swift</strong></p>
+
+<p>In case of Swift there are several types of asserts (you can read about them for instance <a href="https://blog.krzyzanowskim.com/2015/03/09/swift-asserts-the-missing-manual/">here</a>) by “assert” in the context of Swift I consider regular <code class="language-plaintext highlighter-rouge">assert(_:_:file:line:)</code> function</p>
+
+<p>Removing asserts is one of the optimizations that swift compiler does (or <em>does not</em> depending on your settings). So as it said in the <a href="https://developer.apple.com/documentation/swift/1541112-assert">documentation</a> if optimization level is <strong>-Onone</strong> you will have the asserts in your resulting code. If the level is different they will be optimized out of the code.</p>
+
+<p>But Swift compiler also has a specific flag <code class="language-plaintext highlighter-rouge">-assert-config</code> which overwrites the optimization level for the assertions. So if you have this flag set with some value it will cancel whatever the optimization level defines for the assertions. The flag has string values: <code class="language-plaintext highlighter-rouge">Debug</code>, <code class="language-plaintext highlighter-rouge">Release</code>, <code class="language-plaintext highlighter-rouge">Unchecked</code>, <code class="language-plaintext highlighter-rouge">DisableReplacement</code>. <em>Debug</em> and <em>DisableReplacemen</em> values cause your swift asserts to remain in the resulting code; <em>Release</em> and <em>Unchecked</em> force the compiler to optimize them out. There is no dedicated property for it in the Xcode project settings so you have to add it in the Other Swift Flags section (<code class="language-plaintext highlighter-rouge">-assert-config Unchecked</code> for instance).</p>
+
+<p><strong>Asserts in Objective-C</strong></p>
+
+<p>In ObjC there are two types of assertions: <code class="language-plaintext highlighter-rouge">assert(condition)</code> coming from C and <code class="language-plaintext highlighter-rouge">NSAssert(condition, comment)</code> - so called Foundation Assertions.</p>
+
+<p>The first hardcore one will be in the resulting code almost in all conditions regardless you configuration, optimisation level and the rest of the Xcode build settings. The only way to switch it off that I’m aware of is to define <code class="language-plaintext highlighter-rouge">NDEBUG=1</code> Preprocessor Macros (together with <code class="language-plaintext highlighter-rouge">DEBUG=1</code> which usually defined by default).</p>
+
+<p>NSAssert is not so tough and handling it is easier: there is a bool property in the Xcode build settings Enable Foundation Assertions (<code class="language-plaintext highlighter-rouge">ENABLE_NS_ASSERTIONS</code>). Also assertions are disabled if preprocessor macro <code class="language-plaintext highlighter-rouge">NS_BLOCK_ASSERTIONS</code> is defined. But it also has nothing to do with the optimization level.</p>
+
+<p>So eventually you don’t need to change any of the optimization levels in your project settings to switch the assertions on/off. Both compilers have special compilation flags for handling them.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>There was my small journey started from the question about asserts and led me right into the compiler theory. On a high level I described the process of building the application from the source code, pointed out the place that code optimisation takes in this process. We also tried to figure out which types of optimizations are there and what exactly the compiler does to optimize your code. Eventually we got to know that optimization level has not so much to do optimizing out the asserts from the source code.</p>
+
+<h3 id="additional-references"><em>Additional references:</em></h3>
+
+<p><em><strong>Clang:</strong></em>
+<br>
+<a href="https://clang.llvm.org/docs/CommandGuide/clang.html#description"><em>https://clang.llvm.org/docs/CommandGuide/clang.html#description</em></a>
+<br>
+<a href="https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options"><em>https://clang.llvm.org/docs/CommandGuide/clang.html#code-generation-options</em></a></p>
+
+<p><em><strong>LLVM:</strong></em>
+<br>
+<a href="https://youtu.be/a5-WaD8VV38"><em>Video: A Brief Introduction to LLVM</em></a>
+<br>
+<a href="https://youtu.be/b_T-eCToX1I"><em>Video: D. Dunbar “A New Architecture for Building Software”</em></a></p>
+
+<p><em><strong>LLVM optimization:</strong></em>
+<br>
+<a href="https://developer.apple.com/library/archive/documentation/General/Conceptual/MOSXAppProgrammingGuide/Performance/Performance.html"> https://developer.apple.com/library/archive/documentation/General/Conceptual/MOSXAppProgrammingGuide/Performance/Performance.html</a> (Compiler-Level Optimizations section)
+<br>
+<a href="https://pewpewthespells.com/blog/buildsettings.html#gcc_optimization_level"> https://pewpewthespells.com/blog/buildsettings.html#gcc_optimization_level</a> (Xcode Build Settings Reference)</p>
+
+<p><em><strong>Swift compiler:</strong></em>
+<br>
+<a href="https://swift.org/swift-compiler/#compiler-architecture"><em>A brief overview at swift.org</em></a>
+<br>
+<a href="https://modocache.io/reading-and-understanding-the-swift-driver-source-code"><em>Swift Driver overview at modocache.io</em></a></p>
+
+<p><em><strong>Swift optimizations:</strong></em>
+<br>
+<a href="https://swift.org/blog/osize/"><em> https://swift.org/blog/osize/</em></a>
+<br>
+<a href="https://swift.org/blog/whole-module-optimizations/"><em> https://swift.org/blog/whole-module-optimizations/</em></a></p>
+
+<p><em><strong>SIL:</strong></em>
+<br>
+<a href="https://github.com/apple/swift/blob/master/docs/SIL.rst"><em> Documentation</em></a>
+<br>
+<a href="https://youtu.be/Ntj8ab-5cvE">Video: Joseph Groff &amp; Chris Lattner Swift’s High-Level IR</a></p>
+
+        </div>
+
+        
+          <div class="page-share">
+  <a href="https://facebook.com/sharer.php?u=http://dmtopolog.com/code-optimization-for-swift-and-objective-c/" onclick="window.open(this.href, &#39;window&#39;, &#39;left=20,top=20,width=500,height=500,toolbar=1,resizable=0&#39;); return false;" class="btn btn--facebook btn--small"><svg class="svg-inline--fa fa-facebook fa-w-14 fa-fw" aria-hidden="true" data-prefix="fab" data-icon="facebook" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M448 56.7v398.5c0 13.7-11.1 24.7-24.7 24.7H309.1V306.5h58.2l8.7-67.6h-67v-43.2c0-19.6 5.4-32.9 33.5-32.9h35.8v-60.5c-6.2-.8-27.4-2.7-52.2-2.7-51.6 0-87 31.5-87 89.4v49.9h-58.4v67.6h58.4V480H24.7C11.1 480 0 468.9 0 455.3V56.7C0 43.1 11.1 32 24.7 32h398.5c13.7 0 24.8 11.1 24.8 24.7z"></path></svg><!-- <i class="fab fa-fw fa-facebook" aria-hidden="true"></i> --> <span>Share</span></a>
+  <a href="https://twitter.com/intent/tweet?text=Compile-time%20code%20optimization%20for%20Swift%20and%20Objective-C&amp;url=http://dmtopolog.com/code-optimization-for-swift-and-objective-c/&amp;via=dmtopolog&amp;related=dmtopolog" onclick="window.open(this.href, &#39;window&#39;, &#39;left=20,top=20,width=500,height=500,toolbar=1,resizable=0&#39;); return false;" class="btn btn--twitter btn--small"><svg class="svg-inline--fa fa-twitter fa-w-16 fa-fw" aria-hidden="true" data-prefix="fab" data-icon="twitter" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg><!-- <i class="fab fa-fw fa-twitter" aria-hidden="true"></i> --> <span>Tweet</span></a>
+  <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3A%2F%2Fdmtopolog.com%2Fcode-optimization-for-swift-and-objective-c%2F" onclick="window.open(this.href, &#39;window&#39;, &#39;left=20,top=20,width=500,height=500,toolbar=1,resizable=0&#39;); return false;" class="btn btn--linkedin btn--small"><svg class="svg-inline--fa fa-linkedin fa-w-14 fa-fw" aria-hidden="true" data-prefix="fab" data-icon="linkedin" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg><!-- <i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> --> <span>LinkedIn</span></a>
+  <a href="https://reddit.com/submit?title=Compile-time+code+optimization+for+Swift+and+Objective-C&amp;url=http%3A%2F%2Fdmtopolog.com%2Fcode-optimization-for-swift-and-objective-c%2F" onclick="window.open(this.href, &#39;window&#39;, &#39;left=20,top=20,width=500,height=500,toolbar=1,resizable=0&#39;); return false;" class="btn btn--reddit btn--small"><svg class="svg-inline--fa fa-reddit fa-w-16 fa-fw" aria-hidden="true" data-prefix="fab" data-icon="reddit" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M201.5 305.5c-13.8 0-24.9-11.1-24.9-24.6 0-13.8 11.1-24.9 24.9-24.9 13.6 0 24.6 11.1 24.6 24.9 0 13.6-11.1 24.6-24.6 24.6zM504 256c0 137-111 248-248 248S8 393 8 256 119 8 256 8s248 111 248 248zm-132.3-41.2c-9.4 0-17.7 3.9-23.8 10-22.4-15.5-52.6-25.5-86.1-26.6l17.4-78.3 55.4 12.5c0 13.6 11.1 24.6 24.6 24.6 13.8 0 24.9-11.3 24.9-24.9s-11.1-24.9-24.9-24.9c-9.7 0-18 5.8-22.1 13.8l-61.2-13.6c-3-.8-6.1 1.4-6.9 4.4l-19.1 86.4c-33.2 1.4-63.1 11.3-85.5 26.8-6.1-6.4-14.7-10.2-24.1-10.2-34.9 0-46.3 46.9-14.4 62.8-1.1 5-1.7 10.2-1.7 15.5 0 52.6 59.2 95.2 132 95.2 73.1 0 132.3-42.6 132.3-95.2 0-5.3-.6-10.8-1.9-15.8 31.3-16 19.8-62.5-14.9-62.5zM302.8 331c-18.2 18.2-76.1 17.9-93.6 0-2.2-2.2-6.1-2.2-8.3 0-2.5 2.5-2.5 6.4 0 8.6 22.8 22.8 87.3 22.8 110.2 0 2.5-2.2 2.5-6.1 0-8.6-2.2-2.2-6.1-2.2-8.3 0zm7.7-75c-13.6 0-24.6 11.1-24.6 24.9 0 13.6 11.1 24.6 24.6 24.6 13.8 0 24.9-11.1 24.9-24.6 0-13.8-11-24.9-24.9-24.9z"></path></svg><!-- <i class="fab fa-fw fa-reddit" aria-hidden="true"></i> --> <span>Reddit</span></a>
+</div>
+
+        
+
+        
+
+        <nav class="page-pagination" role="navigation">
+  
+    <a class="page-previous" href="https://dmtopolog.com/thoughts-on-ios-architecture/">
+      <h4 class="page-pagination-label">Previous</h4>
+      <span class="page-pagination-title">
+        <svg class="svg-inline--fa fa-arrow-left fa-w-14" aria-hidden="true" data-prefix="fas" data-icon="arrow-left" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"></path></svg><!-- <i class="fas fa-arrow-left"></i> --> Thoughts on iOS Architecture
+
+      </span>
+    </a>
+  
+
+  
+    <a class="page-next" href="https://dmtopolog.com/object-serialization-in-ios/">
+      <h4 class="page-pagination-label">Next</h4>
+      <span class="page-pagination-title">
+        Object serialization in iOS
+ <svg class="svg-inline--fa fa-arrow-right fa-w-14" aria-hidden="true" data-prefix="fas" data-icon="arrow-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><path fill="currentColor" d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"></path></svg><!-- <i class="fas fa-arrow-right"></i> -->
+      </span>
+    </a>
+  
+</nav>
+
+      </div>
+    </div>
+  </article>
+</main>
+
+
+    <footer id="footer" class="site-footer">
+  <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+<div class="social-icons"><a class="social-icon" href="https://twitter.com/dmtopolog"><svg class="svg-inline--fa fa-twitter-square fa-w-14 fa-2x" title="Twitter" aria-labelledby="svg-inline--fa-title-4" data-prefix="fab" data-icon="twitter-square" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><title id="svg-inline--fa-title-4">Twitter</title><path fill="currentColor" d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-48.9 158.8c.2 2.8.2 5.7.2 8.5 0 86.7-66 186.6-186.6 186.6-37.2 0-71.7-10.8-100.7-29.4 5.3.6 10.4.8 15.8.8 30.7 0 58.9-10.4 81.4-28-28.8-.6-53-19.5-61.3-45.5 10.1 1.5 19.2 1.5 29.6-1.2-30-6.1-52.5-32.5-52.5-64.4v-.8c8.7 4.9 18.9 7.9 29.6 8.3a65.447 65.447 0 0 1-29.2-54.6c0-12.2 3.2-23.4 8.9-33.1 32.3 39.8 80.8 65.8 135.2 68.6-9.3-44.5 24-80.6 64-80.6 18.9 0 35.9 7.9 47.9 20.7 14.8-2.8 29-8.3 41.6-15.8-4.9 15.2-15.2 28-28.8 36.1 13.2-1.4 26-5.1 37.8-10.2-8.9 13.1-20.1 24.7-32.9 34z"></path></svg><!-- <i class="fab fa-twitter-square fa-2x" title="Twitter"></i> --></a><a class="social-icon" href="https://github.com/dmivanov"><svg class="svg-inline--fa fa-github-square fa-w-14 fa-2x" title="GitHub" aria-labelledby="svg-inline--fa-title-5" data-prefix="fab" data-icon="github-square" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><title id="svg-inline--fa-title-5">GitHub</title><path fill="currentColor" d="M400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zM277.3 415.7c-8.4 1.5-11.5-3.7-11.5-8 0-5.4.2-33 .2-55.3 0-15.6-5.2-25.5-11.3-30.7 37-4.1 76-9.2 76-73.1 0-18.2-6.5-27.3-17.1-39 1.7-4.3 7.4-22-1.7-45-13.9-4.3-45.7 17.9-45.7 17.9-13.2-3.7-27.5-5.6-41.6-5.6-14.1 0-28.4 1.9-41.6 5.6 0 0-31.8-22.2-45.7-17.9-9.1 22.9-3.5 40.6-1.7 45-10.6 11.7-15.6 20.8-15.6 39 0 63.6 37.3 69 74.3 73.1-4.8 4.3-9.1 11.7-10.6 22.3-9.5 4.3-33.8 11.7-48.3-13.9-9.1-15.8-25.5-17.1-25.5-17.1-16.2-.2-1.1 10.2-1.1 10.2 10.8 5 18.4 24.2 18.4 24.2 9.7 29.7 56.1 19.7 56.1 19.7 0 13.9.2 36.5.2 40.6 0 4.3-3 9.5-11.5 8-66-22.1-112.2-84.9-112.2-158.3 0-91.8 70.2-161.5 162-161.5S388 165.6 388 257.4c.1 73.4-44.7 136.3-110.7 158.3zm-98.1-61.1c-1.9.4-3.7-.4-3.9-1.7-.2-1.5 1.1-2.8 3-3.2 1.9-.2 3.7.6 3.9 1.9.3 1.3-1 2.6-3 3zm-9.5-.9c0 1.3-1.5 2.4-3.5 2.4-2.2.2-3.7-.9-3.7-2.4 0-1.3 1.5-2.4 3.5-2.4 1.9-.2 3.7.9 3.7 2.4zm-13.7-1.1c-.4 1.3-2.4 1.9-4.1 1.3-1.9-.4-3.2-1.9-2.8-3.2.4-1.3 2.4-1.9 4.1-1.5 2 .6 3.3 2.1 2.8 3.4zm-12.3-5.4c-.9 1.1-2.8.9-4.3-.6-1.5-1.3-1.9-3.2-.9-4.1.9-1.1 2.8-.9 4.3.6 1.3 1.3 1.8 3.3.9 4.1zm-9.1-9.1c-.9.6-2.6 0-3.7-1.5s-1.1-3.2 0-3.9c1.1-.9 2.8-.2 3.7 1.3 1.1 1.5 1.1 3.3 0 4.1zm-6.5-9.7c-.9.9-2.4.4-3.5-.6-1.1-1.3-1.3-2.8-.4-3.5.9-.9 2.4-.4 3.5.6 1.1 1.3 1.3 2.8.4 3.5zm-6.7-7.4c-.4.9-1.7 1.1-2.8.4-1.3-.6-1.9-1.7-1.5-2.6.4-.6 1.5-.9 2.8-.4 1.3.7 1.9 1.8 1.5 2.6z"></path></svg><!-- <i class="fab fa-github-square fa-2x" title="GitHub"></i> --></a><a class="social-icon" href="https://www.linkedin.com/in/ivanovdmitrii/"><svg class="svg-inline--fa fa-linkedin fa-w-14 fa-2x" title="LinkedIn" aria-labelledby="svg-inline--fa-title-6" data-prefix="fab" data-icon="linkedin" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><title id="svg-inline--fa-title-6">LinkedIn</title><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg><!-- <i class="fab fa-linkedin fa-2x" title="LinkedIn"></i> --></a><a class="social-icon" href="https://dmtopolog.com/feed.xml"><svg class="svg-inline--fa fa-rss-square fa-w-14 fa-2x" title="Feed" aria-labelledby="svg-inline--fa-title-7" data-prefix="fas" data-icon="rss-square" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg=""><title id="svg-inline--fa-title-7">Feed</title><path fill="currentColor" d="M400 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V80c0-26.51-21.49-48-48-48zM112 416c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm157.533 0h-34.335c-6.011 0-11.051-4.636-11.442-10.634-5.214-80.05-69.243-143.92-149.123-149.123-5.997-.39-10.633-5.431-10.633-11.441v-34.335c0-6.535 5.468-11.777 11.994-11.425 110.546 5.974 198.997 94.536 204.964 204.964.352 6.526-4.89 11.994-11.425 11.994zm103.027 0h-34.334c-6.161 0-11.175-4.882-11.427-11.038-5.598-136.535-115.204-246.161-251.76-251.76C68.882 152.949 64 147.935 64 141.774V107.44c0-6.454 5.338-11.664 11.787-11.432 167.83 6.025 302.21 141.191 308.205 308.205.232 6.449-4.978 11.787-11.432 11.787z"></path></svg><!-- <i class="fas fa-rss-square fa-2x" title="Feed"></i> --></a></div><div class="copyright">
+    
+      <p>© 2020 topolog's tech blog. Powered by <a href="https://jekyllrb.com/" rel="nofollow">Jekyll</a> &amp; <a href="https://github.com/mmistakes/so-simple-theme" rel="nofollow">So Simple</a>.</p>
+    
+  </div>
+</footer>
+
+    <script src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/main.min.js"></script>
+  <script src="./Compile-time code optimization for Swift and Objective-C _ topolog’s tech blog_files/all.js"></script><script>
+  if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-127243344-1', 'auto');
+    ga('send', 'pageview');
+  }
+  </script>
+
+
+  
+
+
+</body></html>

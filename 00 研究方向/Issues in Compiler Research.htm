@@ -1,0 +1,294 @@
+
+<!-- saved from url=(0068)https://www.cs.utexas.edu/ftp/new_directions/new_sid_chatterjee.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Issues in Compiler Research</title>
+</head>
+<body bgcolor="#ffffff" vlink="#0060f0" link="#FF3300">
+<font size="6">
+</font><center><font size="6"><b>Issues in Compiler Research</b></font><p><font size="6">
+</font><font size="4">
+<b>Position Paper for NSF Workshop on</b><br>
+<b>New Challenges and Directions for Systems Research</b><br>
+<b>St. Louis, MO, July 31 - August 1, 1997</b></font></p><p><font size="4">
+<a href="http://www.cs.unc.edu/~sc/">Siddhartha Chatterjee</a></font></p><p><font size="4">
+Department of Computer Science<br>
+The University of North Carolina at Chapel Hill</font></p><p><font size="4">
+</font></p></center><font size="4">
+
+<h3>Introduction</h3>
+
+The rapid developments in computer and communication systems and the
+growth of innovative applications provides new challenges and
+opportunities to the research area of programming languages,
+compilers, and runtime systems.  This research area, being at the
+nexus of systems research, will be critical to the development of
+applications that exploit high levels of abstraction and functionality
+and achieve high levels of performance.<p>
+
+I see the following as key problems in this area of research.
+</p><ul>
+  <li> Management of deep memory hierarchies.
+  </li><li> Aggressive optimization of large applications in the presence of
+    abstraction boundaries, protection boundaries, and separately
+    compiled modules.
+  </li><li> Use of domain-specific information to optimize the transmission,
+    storage, and interpretation of object code and multimedia data.
+</li></ul>
+The following sections describe these items in greater detail.
+
+<h3>Memory hierarchy management</h3>
+
+The increasing disparity between CPU and memory speeds over the past
+two decades has resulted in the use of multi-level memory hierarchies
+that attempt to exploit locality of reference in programs and hide
+memory latencies.  The performance of many of today's complex
+applications is determined by the characteristics of the memory
+subsystem rather than by the operation count of the program, and there
+is often a dramatic difference between the peak advertised CPU
+performance and the observed performance of a given application.  The
+widening gap between processor and memory performance is likely to
+continue, resulting in even deeper memory hierarchies.<p>
+
+An integrated solution to the memory hierarchy management problem must
+deal with resource allocation and management issues at all levels of
+the hierarchy: good interprocedural allocation of machine registers,
+spatial and temporal locality in multiple levels of data cache, code
+layout in the instruction cache, virtual-to-physical address mappings
+in the translation lookaside buffer, page-level locality in main
+memory, I/O buffers in secondary storage, and local/remote memory and
+memory consistency issues in distributed shared memory systems.  The
+state of practice is that users end up restructuring programs manually
+to improve memory performance, and that the tools available for this
+task are limited to specific subproblems or to subclasses of programs.
+The lack of automatic tools for memory hierarchy management has the
+obvious negative consequences on readability, portability, and
+maintainability of code.  A typical example of this phenomenon is seen
+in high-performance mathematical library codes such as ScaLAPACK,
+where much of the complexity of a typical routine is independent of
+the numerical computing issues and arise from trying to do a good job
+of load balancing and memory management.</p><p>
+
+The state of the art in tools for this problem varies widely.
+</p><ul>
+  <li> Global and interprocedural register allocation techniques are
+    mature, and are available in many research and commercial
+    compilers.
+  </li><li> Automatic loop tiling techniques for data cache locality[10] can
+    handle a limited class of programs (typically, polyhedral loop
+    nests in scientific codes accessing array data with affine index
+    expressions), and do not cleanly handle multiple levels of caches.
+  </li><li> Code layout techniques for improved instruction cache behavior are
+    mostly ad hoc and show small levels of performance improvement.
+  </li><li> Paging algorithms for virtual memory are largely demand-driven,
+    and typically do not incorporate any information that compiler
+    analysis might reveal.  Mechanisms exist for pinning down pages,
+    but the use of these mechanisms is largely left to the user.
+  </li><li> A large body of work exists in the area of out-of-core algorithms,
+    but this community has been largely theoretically inclined and
+    interacts very little with other areas of systems research.
+    (Cormen[5] and Choudhary[8] are exceptions to this general trend.)
+  </li><li> Intelligent prefetching of pages in a global memory environment[4]
+    is an active area of operating systems research, but proceeds in a
+    vacuum, as current techniques for predicting page reference
+    patterns are very rudimentary.
+</li></ul>
+
+Good memory locality is a prerequisite for high performance.  The
+fundamental challenges in this problem are twofold:
+<ul>
+  <li> To develop a mixture of static and dynamic tools to understand and
+    improve the data locality pattern of a larger class of programs.
+    See Pauca et al.[12] for initial attempts in this direction.
+  </li><li> To develop an integrated framework that reveals the inclusion
+    properties among successive levels of the memory hierarchy and
+    exploits these properties to develop unified solutions that scale
+    smoothly across many orders of magnitude of memory size and access
+    latency.  See Bilmes at al.[1] and Kodukula et al.[9] for initial
+    attempts in this direction.
+</li></ul>
+
+Progress in this area will depend on the collaboration among several
+research areas of computing systems.
+<ul>
+  <li> Programming languages to allow users to convey domain-specific
+    knowledge about locality at a high level and to design
+    memory-friendly and latency-tolerant programs.
+  </li><li> Compilers and static analysis tools to identify locality patterns,
+    and to jointly restructure code and data to improve locality.
+  </li><li> Operating systems to provide mechanisms for thread scheduling and
+    data prefetching, with appropriate hooks to incorporate results of
+    static analysis.
+  </li><li> Computer architecture to provide features that support latency
+    tolerance and memory prefetching, to provide feedback to the
+    application about its memory access patterns, and to allow the
+    development of customized memory consistency protocols.
+</li></ul>
+
+<h3>Performance in the face of abstraction</h3>
+
+The growth of problem solving environments and object-oriented
+programming techniques means that programs are increasingly been
+written as collections of modules rather than as monolithic entities.
+Application programs are often little more than the glue that binds
+together calls to library routines (e.g., OpenGL in graphics
+programming; the Java API class libraries; and numerical libraries
+such as LAPACK).  A similar layering exists in operating systems,
+although the reason there is often protection rather than abstraction.
+Such layering and modularity are indispensable for controlling the
+complexity and safety of applications, but provide a difficult
+challenge for delivering high performance out of such applications[2].<p>
+
+The following characteristics of this problem make it both challenging
+and profitable.
+</p><ul>
+  <li> Individual components can be very small.  Many object methods are
+    very simple, perhaps a dozen or so instructions.  Existing studies
+    show that the characteristics of object-oriented programs differ
+    significantly from those of traditional procedural programs[3].
+  </li><li> Separate compilation is indispensable for developing large
+    software systems.  A program may not even exist in its entirety
+    until execution time.  This is further complicated by issues such
+    as dynamic linking, proprietary third-party libraries, and
+    untrusted components in a network environment.
+  </li><li> Different components of an application can be written in different
+    languages, making cross-language interoperability a key issue.
+  </li><li> Opportunities for information propagation exist across relatively
+    long call chains.  This offers the opportunity for optimization
+    across call chains, e.g., removing redundant safety and argument
+    validation checks or performing aggressive register allocation.
+</li></ul>
+
+Breakthroughs in this problem would have widespread impact in diverse
+areas, ranging from faster processing of communication protocol stacks
+to speeding up the verification process for Java bytecodes.<p>
+
+Progress in this problem needs to be made at different levels.
+</p><ul>
+  <li> The organization of separately compiled modules needs to be
+    rethought.  In particular, separately compiled modules need to
+    provide more information about optimization opportunities,
+    in the form of program-level invariants and assertions as well as
+    information about resource usage.
+  </li><li> Separately compiled modules must support specialization (cloning) of
+    routines based on conditions existing at call sites.  This could
+    be supported by maintaining additional representations of the
+    program that could be used to generate such specialized versions
+    on demand.
+  </li><li> The techniques of proof-carrying code[11] might be adapted to
+    specify optimization opportunities in addition to safety
+    properties.
+  </li><li> Visual programming systems can allow the user to specify code
+    properties relevant to optimization that might be difficult to
+    recognize automatically.
+</li></ul>
+
+There is need to develop consensus and standards within the compiler
+community about the kinds of capabilities that separately compiled
+modules must support.  The benefits of standards for representing such
+information are clear.<p>
+
+</p><h3>Domain-specific compression</h3>
+
+With the growing use of network computing, there is a growing need for
+efficient encodings of multimedia data and object code in order to
+conserve network resources during transmission, disk resources during
+storage, and processor resources during interpretation.  In this
+section I will address a restricted form of this issue as it applies
+to code (such as Java class files) that a client may download from a
+server.<p>
+
+Text compression techniques can be applied naively to object code
+files, but more leverage can be gained by exploiting special
+characteristics of instruction and data streams.  Ernst et al.[7] have
+demonstrated greater improvements by exploiting semantic information
+in instruction streams, but this has barely scratched the surface of
+what is possible in this area.</p><p>
+
+Many possible research opportunities exist here, all with high payoff.
+</p><ul>
+  <li> The coding approaches examined so far are ad hoc.  It remains to
+    be seen what further gains are possible using advanced statistical
+    coding techniques such as those based on Markov models.
+  </li><li> As a possible alternative to JIT compilation, one could adaptively
+    identify "superoperators" (common sequences of instructions,
+    possibly parameterized) in the program, and use them in the
+    encoding process.  The client side could dynamically generate
+    native code or otherwise optimize the implementation of
+    superoperators to speed up the interpretation process.
+</li></ul>
+
+<h3>Conclusions</h3>
+
+Compilers and related technologies have a key role to play in the next
+generation of systems and applications.  A good example of this is the
+work of Eide et al.[6], in which fairly standard compiler
+optimizations were applied to RPC stub generation to demonstrate
+impressive gains in end-to-end performance.  Similar opportunities
+undoubtedly exist in other application areas.  The compiler community
+needs to be driven by the problems faced by such new application
+domains.
+
+<h3>Bibliography</h3>
+
+<ol>
+ <li> J. Bilmes, K. Asanovic, C.-W. Chin, and J. Demmel, "Optimizing
+     Matrix Multiply using PhiPAC: A Portable, High-Performance, ANSI
+     C Coding Methodology", Proceedings of International Conference on
+     Supercomputing, Vienna, Austria, July 1997.  To appear.
+
+ </li><li> J. C. Brustoloni, "Effects of Buffering Semantics on I/O
+     Performance", in Proceedings of OSDI'96, USENIX, Seattle, WA,
+     pp. 277-291, October 1996.
+
+ </li><li> B. Calder, D. Grunwald, and B. Zorn, "Quantifying Behavioral
+     Differences Between C and C++ Programs".  Journal of Programming
+     Languages 2(4), pp. 313-351, 1994.
+
+ </li><li> P. Cao, E. W. Felton, A. R. Karlin, and K. Li, "A Study of
+     Integrated Prefetching and Caching Strategies", Proceedings of
+     ACM SIGMETRICS'95, pp. 188-197, May 1995.
+
+ </li><li> T. H. Cormen and M. Hirschl, "Early Experiences in Evaluating the
+     Parallel Disk Model with the ViC* Implementation".  To appear in
+     Parallel Computing.  Also Dartmouth College Computer Science
+     Technical Report PCS-TR96-293, August 1996.
+
+ </li><li> E. Eide, K. Frei, B. Ford, J. Lepreau, and G. Lindstrom, "Flick:
+     A Flexible, Optimizing IDL Compiler", Proceedings of PLDI'97,
+     pp. 44-56, June 1997.
+
+ </li><li> J. Ernst, W. Evans, C. W. Fraser, S. Lucco, and T. A. Proebsting,
+     "Code Compression", Proceedings of PLDI'97, pp. 358-365, June
+     1997.
+
+ </li><li> M. Kandemir, J. Ramanujam, and A. Choudhary, "Improving the
+     Performance of Out-of-Core Computations", Proceedings of the
+     International Conference on Parallel Processing, Blomingdale, IL,
+     August 1997.  To appear.
+
+ </li><li> I. Kodukula, N. Ahmed, and K. Pingali, "Data-Centric Multi-Level
+     Blocking", Proceedings of PLDI'97, pp. 346-357, June 1997.
+
+ </li><li> M. S. Lam, E. E. Rothberg, and M. E. Wolf, "The Cache Performance
+     and Optimization of Blocked Algorithms", Proceedings of ASPLOS
+     IV, pp. 63-74, April 1991.
+
+ </li><li> G. C. Necula and P. Lee, "Proof-Carrying Code", Technical Report
+     CMU-CS-96-165, Carnegie Mellon University, September 1996.
+
+ </li><li> V. P. Pauca, X. Sun, S. Chatterjee, and A. R. Lebeck,
+     "Architecture-efficient Strassen's Matrix Multiplication: A Case
+     Study of Divide-and-Conquer Algorithms", Proceedings of the
+     International Linear Algebra Society (ILAS) Symposium on Fast
+     Algorithms for Control, Signals and Image Processing, Winnipeg,
+     Manitoba, Canada, June 1997.
+</li></ol>
+
+
+<hr>
+<address>Siddhartha Chatterjee (sc@cs.unc.edu)<br>
+<!-- hhmts start -->
+Last modified: Mon Jul 28 09:38:58 EDT 1997
+<!-- hhmts end --></address><br>
+ 
+</font></body></html>

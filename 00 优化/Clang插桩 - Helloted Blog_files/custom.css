@@ -1,0 +1,52 @@
+
+/* 自定义的一些CSS */
+
+p>a{ 
+	color:#2c66cf;
+	text-decoration:none;
+}
+
+ol>li>a{ 
+	color:#2c66cf;
+	text-decoration:none;
+}
+
+h4{
+	font-size: 20px;
+	margin-bottom: 10px;
+	border-bottom: 0;
+	color: #0fbeec;
+	}
+
+
+h3{
+	margin-top: 20px;
+	margin-bottom: 20px;
+	color: #00ccff;
+}
+
+
+p{
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.pager a{
+	font-size: 25px;
+	margin: 4px;
+}
+
+.post-preview> a >h3{
+	color: #606060;
+}
+
+.current_page{
+  color: #438cf7;
+}
+
+
+
+
+
+
+
